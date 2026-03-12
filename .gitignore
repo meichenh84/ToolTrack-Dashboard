@@ -1,0 +1,7 @@
+node_modules/
+.vite/
+.playwright-mcp/
+*.png
+*.jpg
+*.jpeg
+dist/
