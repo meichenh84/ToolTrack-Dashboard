@@ -206,7 +206,7 @@ function GlobalCSS(){return<style>{`
 :root{--bg-deep:#050b12;--bg-panel:#090f18;--bg-card:#0d1620;--bg-elevated:#111c2a;
 --border:#1a2d42;--border-bright:#1e3a55;
 --accent-cyan:#00d4ff;--accent-teal:#00b894;--accent-amber:#f39c12;--accent-red:#e74c3c;--accent-blue:#3498db;
---text-primary:#e8f4fd;--text-secondary:#7a9bbf;--text-muted:#3d5a73;
+--text-primary:#f0f6fc;--text-secondary:#a8c8e8;--text-muted:#6889a8;
 --glow-cyan:0 0 20px rgba(0,212,255,0.3)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg-deep);color:var(--text-primary);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;
@@ -226,7 +226,7 @@ background-image:radial-gradient(ellipse at 10% 20%,rgba(0,212,255,0.04) 0%,tran
 .tab:hover{color:var(--text-secondary);background:rgba(255,255,255,0.02)}
 .tab.active{color:var(--accent-cyan);background:var(--bg-panel);border-color:var(--border);border-bottom:1px solid var(--bg-panel);margin-bottom:-1px}
 .main{padding:28px 36px;display:flex;flex-direction:column;gap:24px}
-.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;animation:fadeIn .6s ease .2s both}
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;animation:fadeIn .6s ease .2s both}
 .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;transition:all .3s}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent-color,var(--accent-cyan)),transparent)}
 .stat-card:hover{border-color:var(--border-bright);transform:translateY(-2px)}
@@ -345,7 +345,7 @@ td.mono{font-family:'DM Mono',monospace}
 
 /* ═══ Responsive ═══ */
 @media(max-width:1200px){
-.stats-row{grid-template-columns:repeat(5,1fr)}
+.stats-row{grid-template-columns:repeat(2,1fr)}
 .site-col{border-right-color:var(--border)}
 .podium-col{max-width:150px}
 .podium{gap:18px}
@@ -354,7 +354,7 @@ td.mono{font-family:'DM Mono',monospace}
 .header{padding:16px 20px}
 .nav-tabs{padding:12px 20px 0}
 .main{padding:20px 16px;gap:16px}
-.stats-row{grid-template-columns:repeat(5,1fr);gap:10px}
+.stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
 .stat-value{font-size:22px}
 .panel-header{padding:12px 14px}
 .panel-title{font-size:11px;letter-spacing:1px}
@@ -381,7 +381,7 @@ h1{font-size:13px!important;letter-spacing:2px!important}
 .nav-tabs{padding:8px 14px 0;gap:0;overflow-x:auto}
 .tab{padding:8px 14px;font-size:10px;letter-spacing:1px;flex-shrink:0}
 .main{padding:14px 10px;gap:12px}
-.stats-row{grid-template-columns:repeat(5,1fr);gap:6px}
+.stats-row{grid-template-columns:repeat(2,1fr);gap:6px}
 .stat-card{padding:10px 8px}
 .stat-value{font-size:16px}
 .stat-label{font-size:7px;letter-spacing:1px}
@@ -603,9 +603,6 @@ export default function Dashboard(){
             {[
               {label:"Total Tools",val:<><CountUp target={TOOLS.length}/></>,sub:`HW ${totalHW} / SW ${totalSW}`,accent:"var(--accent-cyan)"},
               {label:"Total Logs",val:<CountUp target={ALL_LOGS.length}/>,sub:"All uploads",accent:"var(--accent-teal)"},
-              {label:"Pass Rate",val:<CountUp target={passRate} suffix="%"/>,sub:"With test report",accent:"var(--accent-amber)"},
-              {label:"Total Fails",val:<CountUp target={totalFails}/>,sub:"Cumulative",accent:"var(--accent-red)"},
-              {label:"Sites / Testers",val:<>{Object.keys(SITE_TESTERS).length} / <CountUp target={Object.values(SITE_TESTERS).flat().length}/></>,sub:"Active",accent:"var(--accent-blue)"},
             ].map((s,i)=>(
               <div key={i} className="stat-card" style={{"--accent-color":s.accent}}>
                 <div className="stat-label">{s.label}</div>
