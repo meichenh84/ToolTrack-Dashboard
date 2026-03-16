@@ -472,6 +472,29 @@ td.mono{font-family:'DM Mono',monospace}
 .toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:#00b894}
 .retired-tag{font-size:8px;padding:2px 6px;border-radius:3px;letter-spacing:1px;margin-left:8px;background:rgba(231,76,60,0.15);color:var(--accent-red);border:1px solid rgba(231,76,60,0.3)}
 
+/* ═══ CRUD Buttons ═══ */
+.crud-btn{font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid;transition:all .2s;font-weight:500}
+.add-btn{background:rgba(0,184,148,0.15);color:var(--accent-teal);border-color:rgba(0,184,148,0.4);margin-left:auto}
+.add-btn:hover{background:rgba(0,184,148,0.3);border-color:var(--accent-teal)}
+.edit-btn{background:rgba(0,180,216,0.12);color:var(--accent-cyan);border-color:rgba(0,180,216,0.3);margin-right:6px}
+.edit-btn:hover{background:rgba(0,180,216,0.25);border-color:var(--accent-cyan)}
+.del-btn{background:rgba(231,76,60,0.12);color:var(--accent-red);border-color:rgba(231,76,60,0.3)}
+.del-btn:hover{background:rgba(231,76,60,0.25);border-color:var(--accent-red)}
+.cancel-btn{background:var(--bg-elevated);color:var(--text-secondary);border-color:var(--border)}
+.cancel-btn:hover{border-color:var(--text-muted)}
+.save-btn{background:rgba(0,184,148,0.2);color:var(--accent-teal);border-color:rgba(0,184,148,0.5)}
+.save-btn:hover{background:rgba(0,184,148,0.35);border-color:var(--accent-teal)}
+
+/* ═══ Form Grid ═══ */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--text-secondary);font-family:'DM Mono',monospace}
+.form-input{padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent-cyan)}
+select.form-input{cursor:pointer}
+.form-checkbox-label{flex-direction:row;align-items:center;gap:8px;grid-column:span 2}
+.form-checkbox-label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent-teal);cursor:pointer}
+.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
 /* ═══ Usage Matrix ═══ */
 .year-select{background:var(--bg-elevated);border:1px solid var(--border-bright);border-radius:6px;padding:6px 14px;color:var(--accent-cyan);font-family:'Orbitron',monospace;font-size:12px;font-weight:800;cursor:pointer;outline:none;letter-spacing:1px;transition:all .2s}
 .year-select:hover{border-color:var(--accent-cyan);box-shadow:0 0 8px rgba(0,212,255,0.2)}
@@ -679,6 +702,11 @@ export default function Dashboard(){
   const[selectedYear,setSelectedYear]=useState(2026);
   const[deletedIds,setDeletedIds]=useState(new Set());
   const[disabledTools,setDisabledTools]=useState(new Set());
+  const[tools,setTools]=useState(TOOLS);
+  const[showToolForm,setShowToolForm]=useState(false);
+  const[editingTool,setEditingTool]=useState(null);
+  const emptyForm={name:"",v:"1.0.0",cat:"HW",site:"TPE",team:"",unit:"HW Q",devName:"",devEmail:"",devExt:"",hasReport:false};
+  const[toolForm,setToolForm]=useState(emptyForm);
   const fileRef=useRef(null);
 
   useEffect(()=>{const tick=()=>{const n=new Date();setClock([n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,"0")).join(":"))};tick();const id=setInterval(tick,1000);return()=>clearInterval(id)},[]);
@@ -707,7 +735,7 @@ export default function Dashboard(){
   const sortIcon=(key)=>sortCfg.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{sortCfg.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
 
   const toggleTool=(id)=>{setDisabledTools(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n})};
-  const activeTools=useMemo(()=>TOOLS.filter(t=>!disabledTools.has(t.id)),[disabledTools]);
+  const activeTools=useMemo(()=>tools.filter(t=>!disabledTools.has(t.id)),[disabledTools,tools]);
   const R=useMemo(()=>computeRankings(activeTools),[activeTools]);
 
   const totalHW=activeTools.filter(t=>t.cat==="HW").length;
@@ -720,10 +748,27 @@ export default function Dashboard(){
   const handleDeleteLog=(id,filename)=>{if(confirm(`確定要刪除 ${filename} 嗎？`)){setDeletedIds(prev=>{const n=new Set(prev);n.add(id);return n});setNotif(`✓ 已刪除: ${filename}`)}}
 
   const filteredTools=useMemo(()=>{
-    if(!dirSearch)return TOOLS;
+    if(!dirSearch)return tools;
     const q=dirSearch.toLowerCase();
-    return TOOLS.filter(t=>t.name.toLowerCase().includes(q)||t.site.toLowerCase().includes(q)||t.team.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q));
-  },[dirSearch]);
+    return tools.filter(t=>t.name.toLowerCase().includes(q)||t.site.toLowerCase().includes(q)||t.team.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q));
+  },[dirSearch,tools]);
+
+  const openAddTool=()=>{setEditingTool(null);setToolForm(emptyForm);setShowToolForm(true)};
+  const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,site:t.site,team:t.team,unit:t.unit,devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
+  const handleSaveTool=()=>{
+    if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
+    const buildTool=(id)=>({id,name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,site:toolForm.site,team:toolForm.team,unit:toolForm.unit,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport,uses:0});
+    if(editingTool){
+      setTools(prev=>prev.map(t=>t.id===editingTool.id?{...t,...buildTool(t.id),uses:t.uses}:t));
+      setNotif(`✓ Updated: ${toolForm.name}`);
+    }else{
+      const newId=`custom-${Date.now()}`;
+      setTools(prev=>[...prev,buildTool(newId)]);
+      setNotif(`✓ Added: ${toolForm.name}`);
+    }
+    setShowToolForm(false);
+  };
+  const handleDeleteTool=(t)=>{if(confirm(`確定要刪除 ${t.name} 嗎？`)){setTools(prev=>prev.filter(x=>x.id!==t.id));setDisabledTools(prev=>{const n=new Set(prev);n.delete(t.id);return n});setNotif(`✓ Deleted: ${t.name}`)}};
 
   return(
     <>
@@ -924,14 +969,15 @@ export default function Dashboard(){
           <div className="panel" style={{animation:"fadeIn .6s ease .2s both"}}>
             <div className="panel-header">
               <div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-amber)",boxShadow:"0 0 6px var(--accent-amber)"}}></div> Tool Status</div>
-              <span className="panel-badge">{activeTools.length}/{TOOLS.length} active</span>
+              <span className="panel-badge">{activeTools.length}/{tools.length} active</span>
             </div>
             <div className="table-controls">
               <input className="search-input" placeholder="Search tool, site, team, developer..." value={dirSearch} onChange={e=>setDirSearch(e.target.value)}/>
+              <button className="crud-btn add-btn" onClick={openAddTool}>＋ Add Tool</button>
             </div>
             <table>
               <thead><tr>
-                <th>Active</th><th>Tool Name</th><th>Type</th><th>Site</th><th>Team</th><th>Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th>
+                <th>Active</th><th>Tool Name</th><th>Type</th><th>Site</th><th>Team</th><th>Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th><th>Action</th>
               </tr></thead>
               <tbody>
                 {filteredTools.map(t=>{
@@ -948,6 +994,10 @@ export default function Dashboard(){
                     <td style={{color:"var(--text-primary)"}}>{t.dev.name}</td>
                     <td><a href={`mailto:${t.dev.email}`} style={{color:"var(--accent-cyan)",textDecoration:"none",fontSize:11}}>{t.dev.email}</a></td>
                     <td className="mono">{t.dev.ext}</td>
+                    <td style={{whiteSpace:"nowrap"}}>
+                      <button className="crud-btn edit-btn" onClick={()=>openEditTool(t)}>Edit</button>
+                      <button className="crud-btn del-btn" onClick={()=>handleDeleteTool(t)}>Delete</button>
+                    </td>
                   </tr>
                   );
                 })}
@@ -959,6 +1009,59 @@ export default function Dashboard(){
 
 
       {notif&&<div style={{position:"fixed",bottom:24,right:24,background:"#0d1620",border:"1px solid var(--accent-teal)",borderRadius:8,padding:"12px 18px",color:"var(--accent-teal)",fontFamily:"'DM Mono',monospace",fontSize:12,zIndex:9999,animation:"fadeIn .3s ease",boxShadow:"0 0 20px rgba(0,184,148,0.2)"}}>{notif}</div>}
+
+      {showToolForm&&(
+        <div className="modal-overlay" onClick={()=>setShowToolForm(false)}>
+          <div className="modal" style={{width:560}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">{editingTool?"Edit Tool":"Add New Tool"}</div>
+                <div className="modal-sub">{editingTool?`Editing ${editingTool.name}`:"Fill in tool details"}</div>
+              </div>
+              <button className="modal-close" onClick={()=>setShowToolForm(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <label className="form-label">Tool Name *
+                  <input className="form-input" value={toolForm.name} onChange={e=>setToolForm(p=>({...p,name:e.target.value}))} placeholder="e.g. TPE Tool 11"/>
+                </label>
+                <label className="form-label">Version
+                  <input className="form-input" value={toolForm.v} onChange={e=>setToolForm(p=>({...p,v:e.target.value}))} placeholder="1.0.0"/>
+                </label>
+                <label className="form-label">Type
+                  <select className="form-input" value={toolForm.cat} onChange={e=>setToolForm(p=>({...p,cat:e.target.value,unit:e.target.value==="HW"?"HW Q":"SW Q"}))}>
+                    <option value="HW">HW</option><option value="SW">SW</option>
+                  </select>
+                </label>
+                <label className="form-label">Site
+                  <select className="form-input" value={toolForm.site} onChange={e=>setToolForm(p=>({...p,site:e.target.value}))}>
+                    <option value="TPE">TPE</option><option value="XM">XM</option><option value="FQ">FQ</option>
+                  </select>
+                </label>
+                <label className="form-label">Team
+                  <input className="form-input" value={toolForm.team} onChange={e=>setToolForm(p=>({...p,team:e.target.value}))} placeholder="e.g. Monitor Team"/>
+                </label>
+                <label className="form-label">Unit
+                  <input className="form-input" value={toolForm.unit} onChange={e=>setToolForm(p=>({...p,unit:e.target.value}))} placeholder="HW Q / SW Q"/>
+                </label>
+                <label className="form-label">Developer
+                  <input className="form-input" value={toolForm.devName} onChange={e=>setToolForm(p=>({...p,devName:e.target.value}))} placeholder="Name"/>
+                </label>
+                <label className="form-label">Email
+                  <input className="form-input" value={toolForm.devEmail} onChange={e=>setToolForm(p=>({...p,devEmail:e.target.value}))} placeholder="email@company.com"/>
+                </label>
+                <label className="form-label">Ext
+                  <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="2501"/>
+                </label>
+              </div>
+              <div className="form-actions">
+                <button className="crud-btn cancel-btn" onClick={()=>setShowToolForm(false)}>Cancel</button>
+                <button className="crud-btn save-btn" onClick={handleSaveTool}>{editingTool?"Save Changes":"Add Tool"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
