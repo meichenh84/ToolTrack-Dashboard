@@ -936,7 +936,7 @@ export default function Dashboard(){
                 <th className="sortable" onClick={()=>handleSort("timeStr")}>Upload Time{sortIcon("timeStr")}</th>
                 <th className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
                 <th className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
-                <th className="sortable" onClick={()=>handleSort("site")}>Site{sortIcon("site")}</th>
+                <th className="sortable" onClick={()=>handleSort("site")}>Test Site{sortIcon("site")}</th>
                 <th className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
                 <th className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
                 <th className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
