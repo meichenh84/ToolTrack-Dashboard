@@ -5,106 +5,69 @@ import { useState, useEffect, useRef, useMemo } from "react";
 // ══════════════════════════════════════════════════════════════════════════════
 
 const TOOLS = [
-  // ── TPE — Monitor Team ──
-  { id:"thermal-analyzer", name:"熱像分析工具", v:"2.3.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
-    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:6,
-    report:[
-      {item:"溫度讀取精度",result:"pass",issues:0,notes:"±0.5°C 精度符合規格"},
-      {item:"熱區辨識",result:"pass",issues:0,notes:"自動辨識熱區範圍正確"},
-      {item:"高溫報警觸發",result:"warning",issues:1,notes:"85°C 報警延遲 2 秒"},
-      {item:"報告匯出",result:"pass",issues:0,notes:"PDF/Excel 匯出正常"},
-    ]},
-  { id:"component-marker", name:"元器件標示工具", v:"1.2.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
-    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:false, uses:3, report:null },
-  { id:"esd-tester", name:"靜電放電測試工具", v:"1.0.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
-    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:0, report:null },
-  { id:"monitor-autotest", name:"Monitor 自動化測試", v:"3.1.0", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
-    dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:true, uses:5,
-    report:[
-      {item:"腳本載入",result:"pass",issues:0,notes:"所有腳本格式正確載入"},
-      {item:"測試流程執行",result:"pass",issues:0,notes:"完整流程 15 步驟通過"},
-      {item:"異常捕捉",result:"fail",issues:2,notes:"Timeout 例外未正確捕捉 2 例"},
-      {item:"結果回報",result:"pass",issues:0,notes:"報告自動產生並上傳"},
-      {item:"批次執行",result:"warning",issues:1,notes:"超過 50 筆時記憶體偏高"},
-    ]},
-  { id:"report-organizer", name:"報告整理工具", v:"1.0.5", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
-    dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:false, uses:3, report:null },
-  // ── TPE — TV Team ──
-  { id:"hightemp-tester", name:"高溫測試工具", v:"2.0.1", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
-    dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:4,
-    report:[
-      {item:"溫度爬升控制",result:"pass",issues:0,notes:"升溫速率 2°C/min 穩定"},
-      {item:"長時間穩定性",result:"warning",issues:1,notes:"72h 測試後溫度偏移 +1.2°C"},
-      {item:"數據記錄",result:"pass",issues:0,notes:"每秒取樣完整記錄"},
-      {item:"安全停機",result:"pass",issues:0,notes:"超溫保護正常觸發"},
-    ]},
-  { id:"signal-meter", name:"TV 訊號量測工具", v:"1.5.0", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
-    dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:3,
-    report:[
-      {item:"HDMI 訊號檢測",result:"pass",issues:0,notes:"4K@60Hz 訊號穩定"},
-      {item:"色彩準確度",result:"pass",issues:0,notes:"Delta E < 2.0"},
-      {item:"解析度驗證",result:"fail",issues:1,notes:"8K 訊號源偶發畫面撕裂"},
-      {item:"音訊同步",result:"pass",issues:0,notes:"A/V 同步延遲 < 20ms"},
-    ]},
-  { id:"osd-tester", name:"OSD 測試工具", v:"2.2.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
-    dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:5,
-    report:[
-      {item:"選單導航",result:"pass",issues:0,notes:"所有路徑可正常到達"},
-      {item:"語言切換",result:"pass",issues:0,notes:"28 語系切換正常"},
-      {item:"設定值儲存",result:"fail",issues:2,notes:"色溫設定重開機後還原 2 例"},
-      {item:"重設出廠",result:"pass",issues:0,notes:"所有設定正確還原預設值"},
-    ]},
-  { id:"image-analyzer", name:"畫質分析工具", v:"1.3.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
-    dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:3,
-    report:[
-      {item:"對比度測試",result:"pass",issues:0,notes:"動態對比度 5000:1 達標"},
-      {item:"亮度均勻性",result:"warning",issues:1,notes:"邊角亮度偏低 8%"},
-      {item:"色域覆蓋",result:"pass",issues:0,notes:"sRGB 99.2% 覆蓋率"},
-    ]},
-  // ── XM — TV Team ──
-  { id:"xm-hightemp", name:"XM 高溫測試工具", v:"1.8.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
-    dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:4,
-    report:[
-      {item:"溫度爬升控制",result:"pass",issues:0,notes:"升溫曲線符合規格"},
-      {item:"功耗監測",result:"pass",issues:0,notes:"待機/運行功耗記錄正確"},
-      {item:"散熱效率",result:"fail",issues:1,notes:"特定機型散熱不足導致降頻"},
-      {item:"數據記錄",result:"pass",issues:0,notes:"數據完整匯出 CSV"},
-    ]},
-  { id:"xm-osd", name:"XM OSD 測試工具", v:"2.0.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
-    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3,
-    report:[
-      {item:"選單回應速度",result:"pass",issues:0,notes:"平均回應 < 100ms"},
-      {item:"多語系顯示",result:"warning",issues:1,notes:"阿拉伯語右到左排版異常"},
-      {item:"亮度調整",result:"pass",issues:0,notes:"0-100 線性調整正確"},
-    ]},
-  { id:"xm-regression", name:"自動化回歸測試工具", v:"0.9.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
-    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0, report:null },
-  { id:"firmware-verifier", name:"韌體燒錄驗證工具", v:"1.1.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
-    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3,
-    report:[
-      {item:"燒錄完整性",result:"pass",issues:0,notes:"MD5 校驗全數通過"},
-      {item:"版本校驗",result:"pass",issues:0,notes:"版本號碼正確顯示"},
-      {item:"回滾測試",result:"fail",issues:1,notes:"降版後設定未清除"},
-      {item:"批次燒錄",result:"pass",issues:0,notes:"10 台同時燒錄成功"},
-    ]},
-  // ── FQ — Monitor Team ──
-  { id:"fq-safety", name:"FQ 電氣安規測試工具", v:"2.5.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
-    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:3,
-    report:[
-      {item:"絕緣電阻",result:"pass",issues:0,notes:"> 10MΩ 符合規格"},
-      {item:"耐壓測試",result:"pass",issues:0,notes:"3000V / 1min 通過"},
-      {item:"接地阻抗",result:"pass",issues:0,notes:"< 0.1Ω 符合標準"},
-      {item:"漏電流",result:"warning",issues:1,notes:"高濕環境漏電流偏高 0.2mA"},
-    ]},
-  { id:"fq-pcb", name:"FQ PCB 檢測工具", v:"1.0.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
-    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:2,
-    report:[
-      {item:"焊點檢查",result:"pass",issues:0,notes:"AOI 檢查 100% 合格"},
-      {item:"短路偵測",result:"pass",issues:0,notes:"無短路"},
-      {item:"元件定位",result:"fail",issues:1,notes:"QFP 元件偏移超過 50μm"},
-    ]},
-  { id:"fq-log-parser", name:"FQ Log 解析工具", v:"1.0.2", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
-    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:false, uses:1, report:null },
+  // ── TPE (10 tools) ──
+  { id:"tpe-1",  name:"TPE Tool 1",  v:"2.3.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:6 },
+  { id:"tpe-2",  name:"TPE Tool 2",  v:"1.2.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:false, uses:3 },
+  { id:"tpe-3",  name:"TPE Tool 3",  v:"1.0.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:0 },
+  { id:"tpe-4",  name:"TPE Tool 4",  v:"3.1.0", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:true, uses:5 },
+  { id:"tpe-5",  name:"TPE Tool 5",  v:"1.0.5", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:false, uses:3 },
+  { id:"tpe-6",  name:"TPE Tool 6",  v:"2.0.1", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
+    dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:4 },
+  { id:"tpe-7",  name:"TPE Tool 7",  v:"1.5.0", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
+    dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:3 },
+  { id:"tpe-8",  name:"TPE Tool 8",  v:"2.2.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+    dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:5 },
+  { id:"tpe-9",  name:"TPE Tool 9",  v:"1.3.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+    dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:3 },
+  { id:"tpe-10", name:"TPE Tool 10", v:"1.0.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+    dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:false, uses:2 },
+  // ── XM (10 tools) ──
+  { id:"xm-1",  name:"XM Tool 1",  v:"1.8.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+    dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:4 },
+  { id:"xm-2",  name:"XM Tool 2",  v:"2.0.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
+  { id:"xm-3",  name:"XM Tool 3",  v:"0.9.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0 },
+  { id:"xm-4",  name:"XM Tool 4",  v:"1.1.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
+  { id:"xm-5",  name:"XM Tool 5",  v:"1.4.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+    dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:2 },
+  { id:"xm-6",  name:"XM Tool 6",  v:"2.1.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+    dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:false, uses:4 },
+  { id:"xm-7",  name:"XM Tool 7",  v:"1.6.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
+  { id:"xm-8",  name:"XM Tool 8",  v:"1.0.1", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:false, uses:1 },
+  { id:"xm-9",  name:"XM Tool 9",  v:"2.3.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+    dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:5 },
+  { id:"xm-10", name:"XM Tool 10", v:"1.2.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+    dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0 },
+  // ── FQ (10 tools) ──
+  { id:"fq-1",  name:"FQ Tool 1",  v:"2.5.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:3 },
+  { id:"fq-2",  name:"FQ Tool 2",  v:"1.0.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:2 },
+  { id:"fq-3",  name:"FQ Tool 3",  v:"1.0.2", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:false, uses:1 },
+  { id:"fq-4",  name:"FQ Tool 4",  v:"1.3.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:4 },
+  { id:"fq-5",  name:"FQ Tool 5",  v:"2.0.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:2 },
+  { id:"fq-6",  name:"FQ Tool 6",  v:"1.5.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:false, uses:3 },
+  { id:"fq-7",  name:"FQ Tool 7",  v:"1.1.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:1 },
+  { id:"fq-8",  name:"FQ Tool 8",  v:"2.2.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+    dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:5 },
+  { id:"fq-9",  name:"FQ Tool 9",  v:"0.8.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:0 },
+  { id:"fq-10", name:"FQ Tool 10", v:"1.4.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+    dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:false, uses:2 },
 ];
 
 // ── Site testers ──
@@ -116,47 +79,196 @@ const SITE_TESTERS = {
 
 // ── Result patterns per tool (deterministic) ──
 const RES_PAT = {
-  "thermal-analyzer":["pass","pass","pass","pass","warning","pass"],
-  "monitor-autotest":["pass","pass","fail","pass","pass"],
-  "hightemp-tester":["pass","pass","warning","pass"],
-  "signal-meter":["pass","fail","pass"],
-  "osd-tester":["pass","fail","pass","pass","warning"],
-  "image-analyzer":["pass","warning","pass"],
-  "xm-hightemp":["pass","pass","fail","pass"],
-  "xm-osd":["pass","warning","pass"],
-  "firmware-verifier":["pass","fail","pass"],
-  "fq-safety":["pass","pass","warning"],
-  "fq-pcb":["pass","fail"],
+  "tpe-1":["pass","pass","pass","pass","warning","pass"],
+  "tpe-4":["pass","pass","fail","pass","pass"],
+  "tpe-6":["pass","pass","warning","pass"],
+  "tpe-7":["pass","fail","pass"],
+  "tpe-8":["pass","fail","pass","pass","warning"],
+  "tpe-9":["pass","warning","pass"],
+  "xm-1":["pass","pass","fail","pass"],
+  "xm-2":["pass","warning","pass"],
+  "xm-4":["pass","fail","pass"],
+  "xm-5":["pass","pass","warning"],
+  "xm-7":["pass","pass","fail"],
+  "xm-9":["pass","fail","pass","pass","warning"],
+  "fq-1":["pass","pass","warning"],
+  "fq-2":["pass","fail"],
+  "fq-4":["pass","pass","fail","pass"],
+  "fq-5":["pass","warning"],
+  "fq-7":["pass"],
+  "fq-8":["pass","fail","pass","pass","warning"],
 };
 const ITEM_DURS = ["0.3s","1.2s","2.8s","0.8s","1.5s","0.9s","1.1s","3.4s","0.6s","60s"];
 
 // ══════════════════════════════════════════════════════════════════════════════
-// GENERATE LOGS
+// LOG BLUEPRINT — single source of truth for all data
+// { toolId: { site: { year: { month: count } } } }
+// ══════════════════════════════════════════════════════════════════════════════
+
+const LOG_BLUEPRINT = {
+  // ── TPE tools ──
+  "tpe-1": {
+    TPE: { 2025: {1:3,2:2,3:4,5:1,6:3,7:2,8:5,9:2,10:3,11:1,12:4}, 2026: {1:3,2:2,3:1} },
+    XM:  { 2025: {3:1,7:1,11:1}, 2026: {1:1} },
+    FQ:  { 2025: {6:1,12:1}, 2026: {2:1} },
+  },
+  "tpe-2": {
+    TPE: { 2025: {3:1,4:2,6:1,9:1,11:2}, 2026: {1:1,3:2} },
+  },
+  "tpe-3": {},
+  "tpe-4": {
+    TPE: { 2025: {1:4,2:3,3:5,4:2,5:6,6:3,7:4,8:2,9:5,10:3,11:4,12:2}, 2026: {1:5,2:3,3:4} },
+    XM:  { 2025: {2:1,5:2,9:1}, 2026: {1:1,3:2} },
+    FQ:  { 2025: {4:1,10:1}, 2026: {2:1,3:1} },
+  },
+  "tpe-5": {
+    TPE: { 2025: {2:1,5:2,8:1,11:1}, 2026: {2:1} },
+  },
+  "tpe-6": {
+    TPE: { 2025: {1:2,3:3,4:1,6:2,7:1,9:3,10:2,12:1}, 2026: {1:2,2:1,3:3} },
+    FQ:  { 2025: {3:1,9:1}, 2026: {1:1,3:1} },
+  },
+  "tpe-7": {
+    TPE: { 2025: {2:1,4:2,6:1,8:3,10:1,12:2}, 2026: {1:1,3:2} },
+  },
+  "tpe-8": {
+    TPE: { 2025: {1:3,2:2,3:4,4:1,5:3,6:2,7:5,8:1,9:3,10:2,11:4,12:3}, 2026: {1:3,2:2,3:5} },
+    XM:  { 2025: {5:1,11:1}, 2026: {3:1} },
+    FQ:  { 2025: {8:1}, 2026: {2:1} },
+  },
+  "tpe-9": {
+    TPE: { 2025: {1:1,3:2,5:1,7:3,9:1,11:2}, 2026: {1:2,3:1} },
+  },
+  "tpe-10": {
+    TPE: { 2025: {2:1,4:1,7:2,10:1}, 2026: {1:1,3:1} },
+  },
+  // ── XM tools ──
+  "xm-1": {
+    XM:  { 2025: {2:2,3:1,5:3,7:1,8:2,10:1,11:3}, 2026: {1:2,2:1,3:2} },
+    TPE: { 2025: {4:1,10:1}, 2026: {1:1,3:1} },
+    FQ:  { 2025: {7:1}, 2026: {2:1} },
+  },
+  "xm-2": {
+    XM: { 2025: {1:1,4:2,5:1,8:3,9:1,12:2}, 2026: {2:1,3:2} },
+  },
+  "xm-3": {},
+  "xm-4": {
+    XM: { 2025: {3:2,5:1,7:3,9:1,11:2}, 2026: {1:1,3:2} },
+  },
+  "xm-5": {
+    XM: { 2025: {1:1,3:2,6:1,9:2,12:1}, 2026: {2:1} },
+  },
+  "xm-6": {
+    XM:  { 2025: {2:3,4:1,5:2,7:1,8:3,10:2,11:1,12:2}, 2026: {1:2,2:1,3:1} },
+    TPE: { 2025: {6:1}, 2026: {2:1} },
+    FQ:  { 2025: {4:1,10:1}, 2026: {1:1,3:1} },
+  },
+  "xm-7": {
+    XM: { 2025: {1:2,3:1,6:3,8:1,10:2,12:1}, 2026: {1:1,3:2} },
+  },
+  "xm-8": {
+    XM: { 2025: {4:1,9:1}, 2026: {2:1} },
+  },
+  "xm-9": {
+    XM:  { 2025: {1:3,2:2,3:4,5:2,6:1,7:3,8:2,9:1,10:3,11:2,12:4}, 2026: {1:3,2:2,3:1} },
+    TPE: { 2025: {3:1,6:1,11:1}, 2026: {1:1,3:2} },
+    FQ:  { 2025: {5:1}, 2026: {2:1} },
+  },
+  "xm-10": {},
+  // ── FQ tools ──
+  "fq-1": {
+    FQ: { 2025: {1:2,2:1,4:3,5:1,7:2,8:1,10:3,11:1}, 2026: {1:2,2:1} },
+  },
+  "fq-2": {
+    FQ: { 2025: {3:1,6:2,9:1,12:1}, 2026: {2:1} },
+  },
+  "fq-3": {
+    FQ: { 2025: {5:1,10:1}, 2026: {3:1} },
+  },
+  "fq-4": {
+    FQ:  { 2025: {1:2,3:1,4:2,6:3,8:1,10:2,12:1}, 2026: {1:1,2:2,3:1} },
+    TPE: { 2025: {5:1}, 2026: {1:1} },
+    XM:  { 2025: {6:1,12:1}, 2026: {2:1,3:1} },
+  },
+  "fq-5": {
+    FQ: { 2025: {2:1,5:2,8:1,11:1}, 2026: {1:1} },
+  },
+  "fq-6": {
+    FQ: { 2025: {1:1,3:2,5:1,7:3,9:1,11:2}, 2026: {2:1,3:2} },
+  },
+  "fq-7": {
+    FQ: { 2025: {4:1,10:1}, 2026: {3:1} },
+  },
+  "fq-8": {
+    FQ:  { 2025: {1:3,2:2,3:1,5:4,6:2,7:1,8:3,9:2,10:1,11:3,12:2}, 2026: {1:2,2:3,3:1} },
+    TPE: { 2025: {3:1,9:1}, 2026: {1:1,3:1} },
+    XM:  { 2025: {7:1}, 2026: {2:1} },
+  },
+  "fq-9": {},
+  "fq-10": {
+    FQ: { 2025: {3:1,6:1,9:2,12:1}, 2026: {1:1} },
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GENERATE LOGS from blueprint (single source of truth)
 // ══════════════════════════════════════════════════════════════════════════════
 
 const ALL_LOGS = (() => {
   const logs = [];
   let idx = 0;
   TOOLS.forEach(tool => {
-    const testers = SITE_TESTERS[tool.site];
+    const bp = LOG_BLUEPRINT[tool.id] || {};
     const pat = RES_PAT[tool.id];
-    for (let i = 0; i < tool.uses; i++) {
-      const d = new Date(Date.now() - idx * 7200000);
-      logs.push({
-        toolId: tool.id, toolName: tool.name, cat: tool.cat,
-        filename: `${tool.id}_${String(idx+1).padStart(3,"0")}.log`,
-        site: tool.site, team: tool.team, unit: tool.unit,
-        testItem: tool.report ? tool.report.map(r=>r.item).join("、") : "—",
-        tester: testers[i % testers.length],
-        time: d.getTime(),
-        timeStr: `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`,
-        result: tool.hasReport && pat ? pat[i % pat.length] : null,
-        dur: tool.hasReport ? `${((idx*7+3)%50/10+1).toFixed(1)}h` : "—",
+    Object.entries(bp).forEach(([site, years]) => {
+      Object.entries(years).forEach(([year, months]) => {
+        Object.entries(months).forEach(([month, count]) => {
+          for (let j = 0; j < count; j++) {
+            const testers = SITE_TESTERS[site];
+            const day = 3 + ((idx * 7 + j * 11) % 25);
+            const hour = 8 + (idx * 3) % 10;
+            const min = (idx * 17) % 60;
+            const d = new Date(+year, +month - 1, day, hour, min);
+            logs.push({
+              toolId: tool.id, toolName: tool.name, cat: tool.cat,
+              filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
+              site, team: tool.team, unit: tool.unit,
+              testItem: "—",
+              tester: testers[idx % testers.length],
+              time: d.getTime(),
+              timeStr: `${year}/${String(+month).padStart(2,"0")}/${String(day).padStart(2,"0")} ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}`,
+              result: tool.hasReport && pat ? pat[idx % pat.length] : null,
+              dur: tool.hasReport ? `${((idx*7+3)%50/10+1).toFixed(1)}h` : "—",
+            });
+            idx++;
+          }
+        });
       });
-      idx++;
-    }
+    });
   });
   return logs.sort((a,b) => b.time - a.time).map((l,i) => ({...l, id:i+1}));
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// YEARLY USAGE — computed from ALL_LOGS (not hardcoded)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const TOOL_MONTHLY_USAGE = (() => {
+  const map = {};
+  ALL_LOGS.forEach(l => {
+    const d = new Date(l.time);
+    const y = d.getFullYear(), m = d.getMonth();
+    const k = `${l.toolId}_${y}_${m}`;
+    map[k] = (map[k] || 0) + 1;
+  });
+  const result = {};
+  [2025, 2026, 2027].forEach(year => {
+    result[year] = {};
+    TOOLS.forEach(tool => {
+      result[year][tool.id] = Array.from({length:12}, (_, i) => map[`${tool.id}_${year}_${i}`] || 0);
+    });
+  });
+  return result;
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -172,31 +284,39 @@ function rank(arr, key, filterFn = () => true) {
 const ONE_MONTH_AGO = Date.now() - 30 * 24 * 3600000;
 const RECENT_LOGS = ALL_LOGS.filter(l => l.time >= ONE_MONTH_AGO);
 
-function rankToolUsage(logs) {
+function rankToolUsage(logs, tools) {
   const m = {};
-  TOOLS.forEach(t => { m[t.name] = 0; });
-  logs.forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
+  tools.forEach(t => { m[t.name] = 0; });
+  const toolNames = new Set(tools.map(t=>t.name));
+  logs.filter(l=>toolNames.has(l.toolName)).forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
   return Object.entries(m).map(([n,c])=>({name:n,count:c})).sort((a,b)=>b.count-a.count);
 }
 
 const SITES = ["TPE","XM","FQ"];
-function rankToolBySite(site) {
+function rankToolBySite(site, tools, logs) {
   const m = {};
-  TOOLS.filter(t=>t.site===site).forEach(t => { m[t.name] = 0; });
-  ALL_LOGS.filter(l=>l.site===site).forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
+  tools.forEach(t => { m[t.name] = 0; });
+  const toolNames = new Set(tools.map(t=>t.name));
+  logs.filter(l=>l.site===site&&toolNames.has(l.toolName)).forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
   return Object.entries(m).map(([n,c])=>({name:n,count:c})).sort((a,b)=>b.count-a.count);
 }
 
-const R = {
-  recentToolUsage:  rankToolUsage(RECENT_LOGS),
-  recentSiteUsage:  rank(RECENT_LOGS, "site"),
-  totalToolBySite:  Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s)])),
-  toolFails:        TOOLS.filter(t=>t.hasReport).map(t=>({
-                      name:t.name,
-                      count:ALL_LOGS.filter(l=>l.toolId===t.id&&l.result==="fail").length,
-                    })).sort((a,b)=>b.count-a.count),
-  testerUploads:    rank(ALL_LOGS, "tester"),
-};
+function computeRankings(tools) {
+  const toolIds = new Set(tools.map(t=>t.id));
+  const activeLogs = ALL_LOGS.filter(l=>toolIds.has(l.toolId));
+  const recentActive = activeLogs.filter(l=>l.time>=ONE_MONTH_AGO);
+  return {
+    recentToolUsage:  rankToolUsage(recentActive, tools),
+    recentSiteUsage:  rank(recentActive, "site"),
+    recentToolBySite: Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, recentActive)])),
+    totalToolBySite:  Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, activeLogs)])),
+    toolFails:        tools.filter(t=>t.hasReport).map(t=>({
+                        name:t.name,
+                        count:activeLogs.filter(l=>l.toolId===t.id&&l.result==="fail").length,
+                      })).sort((a,b)=>b.count-a.count),
+    testerUploads:    rank(activeLogs, "tester"),
+  };
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CSS
@@ -282,8 +402,8 @@ td.mono{font-family:'DM Mono',monospace}
 .site-col-header{font-family:'Orbitron',monospace;font-size:13px;font-weight:800;letter-spacing:3px;color:var(--accent-teal);text-align:center;padding:14px 12px 10px;border-bottom:1px solid var(--border);background:rgba(0,184,148,0.04)}
 .cat-hw{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-right:6px;background:rgba(0,212,255,0.15);color:var(--accent-cyan);border:1px solid rgba(0,212,255,0.25)}
 .cat-sw{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-right:6px;background:rgba(155,89,182,0.15);color:#b97edb;border:1px solid rgba(155,89,182,0.25)}
-.report-btn{padding:5px 12px;background:transparent;border:1px solid var(--border-bright);border-radius:5px;color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.report-btn:hover{border-color:var(--accent-cyan);color:var(--accent-cyan);box-shadow:0 0 10px rgba(0,212,255,0.15)}
+.delete-btn{padding:5px 12px;background:transparent;border:1px solid rgba(231,76,60,0.3);border-radius:5px;color:var(--accent-red);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.delete-btn:hover{border-color:var(--accent-red);background:rgba(231,76,60,0.12);box-shadow:0 0 10px rgba(231,76,60,0.15)}
 .rank-stack{display:flex;flex-direction:column;gap:20px;animation:fadeIn .6s ease .3s both}
 .hero-panel{border-color:rgba(0,212,255,0.3)!important;box-shadow:0 0 30px rgba(0,212,255,0.06),inset 0 1px 0 rgba(0,212,255,0.1)}
 .hero-panel .panel-header{background:rgba(0,212,255,0.04)}
@@ -342,6 +462,37 @@ td.mono{font-family:'DM Mono',monospace}
 .detail-key{color:var(--text-muted)}.detail-val{color:var(--text-secondary);font-family:'DM Mono',monospace}
 .section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:4px 0}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg-deep)}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--accent-cyan)}
+
+/* ═══ Toggle Switch ═══ */
+.toggle-switch{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:rgba(231,76,60,0.3);border:1px solid rgba(231,76,60,0.4);border-radius:20px;transition:all .3s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;bottom:2px;background:#e74c3c;border-radius:50%;transition:all .3s}
+.toggle-switch input:checked+.toggle-slider{background:rgba(0,184,148,0.3);border-color:rgba(0,184,148,0.5)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:#00b894}
+.retired-tag{font-size:8px;padding:2px 6px;border-radius:3px;letter-spacing:1px;margin-left:8px;background:rgba(231,76,60,0.15);color:var(--accent-red);border:1px solid rgba(231,76,60,0.3)}
+
+/* ═══ Usage Matrix ═══ */
+.year-select{background:var(--bg-elevated);border:1px solid var(--border-bright);border-radius:6px;padding:6px 14px;color:var(--accent-cyan);font-family:'Orbitron',monospace;font-size:12px;font-weight:800;cursor:pointer;outline:none;letter-spacing:1px;transition:all .2s}
+.year-select:hover{border-color:var(--accent-cyan);box-shadow:0 0 8px rgba(0,212,255,0.2)}
+.year-select option{background:var(--bg-card);color:var(--text-primary)}
+.matrix-wrap{overflow-x:auto;padding:0 0 4px}
+.usage-matrix{width:100%;border-collapse:collapse}
+.usage-matrix th,.usage-matrix td{text-align:center;padding:10px 6px;font-size:11px;border-bottom:1px solid var(--border)}
+.matrix-tool-header{text-align:left!important;padding-left:16px!important;width:180px;min-width:180px;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;font-weight:500;background:rgba(0,0,0,0.2);position:sticky;left:0;z-index:2}
+.matrix-month-header{font-family:'Orbitron',monospace;font-size:10px;color:var(--text-secondary);font-weight:700;letter-spacing:1px;background:rgba(0,0,0,0.2)}
+.matrix-tool-name{text-align:left!important;padding-left:16px!important;font-size:11px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;min-width:180px;position:sticky;left:0;z-index:1;background:var(--bg-card)}
+.matrix-cell{font-weight:700;letter-spacing:.5px;transition:all .2s}
+.cell-used{color:#2ecc71;font-size:12px;font-family:'Orbitron',monospace;font-weight:800}
+.cell-count{font-size:13px;line-height:1}
+.cell-check{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:2px solid #2ecc71;font-size:10px;line-height:1;margin-top:3px;color:#2ecc71;font-weight:700}
+.cell-unused{color:var(--accent-red);font-size:8px;letter-spacing:1px;opacity:.6}
+.matrix-row-unused{background:rgba(231,76,60,0.05)}
+.matrix-row-unused .matrix-tool-name{color:var(--accent-red);background:rgba(231,76,60,0.05)}
+.matrix-summary{display:flex;gap:20px;padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-secondary)}
+.matrix-summary span{font-family:'Orbitron',monospace;font-weight:800;margin-left:4px}
+.matrix-summary .used-count{color:#2ecc71}
+.matrix-summary .unused-count{color:var(--accent-red)}
 
 /* ═══ Responsive ═══ */
 @media(max-width:1200px){
@@ -410,6 +561,14 @@ h1{font-size:13px!important;letter-spacing:2px!important}
 .site-col .tool-name-text{font-size:9px}
 .site-col .tool-bar-wrap{width:30px}
 .low-tag{font-size:7px;padding:2px 5px;margin-left:4px}
+.matrix-tool-header{width:120px;min-width:120px;padding-left:8px!important;font-size:8px}
+.matrix-tool-name{width:120px;min-width:120px;padding-left:8px!important;font-size:9px}
+.matrix-month-header{font-size:8px!important;padding:8px 2px!important}
+.matrix-cell{padding:8px 2px!important}
+.cell-used{font-size:11px!important}
+.cell-check{width:14px!important;height:14px!important;font-size:8px!important;border-width:1.5px!important}
+.cell-unused{font-size:7px!important}
+.matrix-summary{flex-wrap:wrap;gap:10px;font-size:10px;padding:10px 12px}
 }
 `}</style>}
 
@@ -514,23 +673,25 @@ export default function Dashboard(){
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("ALL");
   const[sortCfg,setSortCfg]=useState({key:"id",dir:"asc"});
-  const[modalLogId,setModalLogId]=useState(null);
-  const[expandedTest,setExpandedTest]=useState(null);
   const[dragging,setDragging]=useState(false);
   const[notif,setNotif]=useState(null);
   const[dirSearch,setDirSearch]=useState("");
+  const[selectedYear,setSelectedYear]=useState(2026);
+  const[deletedIds,setDeletedIds]=useState(new Set());
+  const[disabledTools,setDisabledTools]=useState(new Set());
   const fileRef=useRef(null);
 
   useEffect(()=>{const tick=()=>{const n=new Date();setClock([n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,"0")).join(":"))};tick();const id=setInterval(tick,1000);return()=>clearInterval(id)},[]);
   useEffect(()=>{if(notif){const id=setTimeout(()=>setNotif(null),3000);return()=>clearTimeout(id)}},[notif]);
 
   const filteredLogs=useMemo(()=>ALL_LOGS.filter(l=>{
+    if(deletedIds.has(l.id))return false;
     const rm={pass:"PASS",fail:"FAIL",warning:"WARN"};
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
     return l.filename.toLowerCase().includes(q)||l.uploader?.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.site.toLowerCase().includes(q);
-  }),[filter,search]);
+  }),[filter,search,deletedIds]);
 
   const sortedLogs=useMemo(()=>{
     return[...filteredLogs].sort((a,b)=>{
@@ -545,20 +706,18 @@ export default function Dashboard(){
   const handleSort=(key)=>setSortCfg(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
   const sortIcon=(key)=>sortCfg.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{sortCfg.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
 
-  const totalHW=TOOLS.filter(t=>t.cat==="HW").length;
-  const totalSW=TOOLS.filter(t=>t.cat==="SW").length;
-  const totalFails=ALL_LOGS.filter(l=>l.result==="fail").length;
-  const passRate=Math.round(ALL_LOGS.filter(l=>l.result==="pass").length/ALL_LOGS.filter(l=>l.result!=null).length*100);
+  const toggleTool=(id)=>{setDisabledTools(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n})};
+  const activeTools=useMemo(()=>TOOLS.filter(t=>!disabledTools.has(t.id)),[disabledTools]);
+  const R=useMemo(()=>computeRankings(activeTools),[activeTools]);
+
+  const totalHW=activeTools.filter(t=>t.cat==="HW").length;
+  const totalSW=activeTools.filter(t=>t.cat==="SW").length;
 
   const handleDragOver=(e)=>{e.preventDefault();setDragging(true)};
   const handleDragLeave=()=>setDragging(false);
   const handleDrop=(e)=>{e.preventDefault();setDragging(false);const f=Array.from(e.dataTransfer.files);if(f.length)setNotif(`✓ Uploaded: ${f[0].name}`)};
   const handleFileSelect=(e)=>{const f=Array.from(e.target.files);if(f.length)setNotif(`✓ Uploaded: ${f[0].name}`)};
-  const openModal=(id)=>{setModalLogId(id);setExpandedTest(null)};
-  const closeModal=()=>{setModalLogId(null);setExpandedTest(null)};
-
-  const modalLog=modalLogId?ALL_LOGS.find(l=>l.id===modalLogId):null;
-  const modalTool=modalLog?TOOLS.find(t=>t.id===modalLog.toolId):null;
+  const handleDeleteLog=(id,filename)=>{if(confirm(`確定要刪除 ${filename} 嗎？`)){setDeletedIds(prev=>{const n=new Set(prev);n.add(id);return n});setNotif(`✓ 已刪除: ${filename}`)}}
 
   const filteredTools=useMemo(()=>{
     if(!dirSearch)return TOOLS;
@@ -590,7 +749,7 @@ export default function Dashboard(){
 
       {/* ═══ TABS ═══ */}
       <div className="nav-tabs">
-        {[["overview","⬡ Overview"],["upload","≡ Upload Log"],["directory","◈ Tool Directory"]].map(([k,l])=>(
+        {[["overview","⬡ Overview"],["upload","≡ Upload Log"],["directory","◈ Tool Status"]].map(([k,l])=>(
           <div key={k} className={`tab ${tab===k?"active":""}`} onClick={()=>setTab(k)}>{l}</div>
         ))}
       </div>
@@ -601,7 +760,7 @@ export default function Dashboard(){
         {tab==="overview"&&<>
           <div className="stats-row">
             {[
-              {label:"Total Tools",val:<><CountUp target={TOOLS.length}/></>,sub:`HW ${totalHW} / SW ${totalSW}`,accent:"var(--accent-cyan)"},
+              {label:"Total Tools",val:<><CountUp target={activeTools.length}/></>,sub:`HW ${totalHW} / SW ${totalSW}`,accent:"var(--accent-cyan)"},
               {label:"Total Logs",val:<CountUp target={ALL_LOGS.length}/>,sub:"All uploads",accent:"var(--accent-teal)"},
             ].map((s,i)=>(
               <div key={i} className="stat-card" style={{"--accent-color":s.accent}}>
@@ -613,11 +772,72 @@ export default function Dashboard(){
           </div>
 
           <div className="rank-stack">
-            <RankingPanel className="hero-panel" title="近一個月所有工具的使用次數" data={R.recentToolUsage} dotColor="var(--accent-cyan)"
-              lowThreshold={0}
-              note={<>追蹤各工具實際投入產品開發週期的使用頻率 — <strong>使用次數為 0 的工具需特別關注是否落實於日常測試流程</strong></>}
-            />
+            {/* ── Yearly Usage Matrix ── */}
+            <div className="panel hero-panel">
+              <div className="panel-header" style={{justifyContent:"space-between"}}>
+                <div className="panel-title">
+                  <div className="panel-title-dot" style={{background:"var(--accent-cyan)",boxShadow:"0 0 6px var(--accent-cyan)"}}></div>
+                  所有工具年度使用狀態
+                </div>
+                <select className="year-select" value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))}>
+                  <option value={2025}>2025</option>
+                  <option value={2026}>2026</option>
+                  <option value={2027}>2027</option>
+                </select>
+              </div>
+              <div className="panel-note">
+                追蹤各工具每月是否實際投入使用 — <strong>整年未使用的工具需特別關注是否落實於日常測試流程</strong>
+              </div>
+              <div className="matrix-wrap">
+                <table className="usage-matrix">
+                  <thead><tr>
+                    <th className="matrix-tool-header">工具名稱</th>
+                    {["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"].map((m,i)=><th key={i} className="matrix-month-header">{m}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {activeTools.map(tool=>{
+                      const usage=(TOOL_MONTHLY_USAGE[selectedYear]||{})[tool.id]||Array(12).fill(0);
+                      const usedCount=usage.filter(v=>v>0).length;
+                      return(
+                        <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
+                          <td className="matrix-tool-name">
+                            <span className={`cat-${tool.cat.toLowerCase()}`}>{tool.cat}</span>
+                            {tool.name}
+                          </td>
+                          {usage.map((count,i)=>(
+                            <td key={i} className={`matrix-cell ${count>0?"cell-used":"cell-unused"}`}>
+                              {count>0?<><div className="cell-count">{count}</div><div className="cell-check">✓</div></>:<>Unused</>}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {(()=>{
+                const yearData=(TOOL_MONTHLY_USAGE[selectedYear]||{});
+                const allUsed=activeTools.filter(t=>(yearData[t.id]||[]).some(v=>v>0)).length;
+                const allUnused=activeTools.length-allUsed;
+                return(
+                  <div className="matrix-summary">
+                    <div>已使用工具：<span className="used-count">{allUsed}</span></div>
+                    <div>未使用工具：<span className="unused-count">{allUnused}</span></div>
+                  </div>
+                );
+              })()}</div>
             <RankingPanel title="近一個月各 Site 使用工具次數" data={R.recentSiteUsage} dotColor="var(--accent-blue)" barBg="var(--accent-blue)"/>
+            <div className="panel">
+              <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-blue)",boxShadow:"0 0 6px var(--accent-blue)"}}></div>近一個月所有工具已被各 Site 使用次數</div></div>
+              <div className="site-columns">
+                {SITES.map(s=>(
+                  <div key={s} className="site-col">
+                    <div className="site-col-header">{s}</div>
+                    <RankingPanelInner data={R.recentToolBySite[s]||[]} barBg="var(--accent-blue)" lowThreshold={0}/>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="panel">
               <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>所有工具已被各 Site 使用總次數</div></div>
               <div className="site-columns">
@@ -675,7 +895,7 @@ export default function Dashboard(){
                 <th className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
                 <th className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
                 <th className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
-                <th>Report</th>
+                <th>Action</th>
               </tr></thead>
               <tbody>
                 {sortedLogs.map(l=>{
@@ -690,7 +910,7 @@ export default function Dashboard(){
                       <td>{l.tester}</td>
                       <td className="mono">{l.dur}</td>
                       <td><ResultBadge result={l.result}/></td>
-                      <td>{tool?.hasReport?<button className="report-btn" onClick={e=>{e.stopPropagation();openModal(l.id)}}>VIEW →</button>:<span style={{color:"var(--text-muted)",fontSize:10}}>—</span>}</td>
+                      <td><button className="delete-btn" onClick={()=>handleDeleteLog(l.id,l.filename)}>刪除</button></td>
                     </tr>
                   );
                 })}
@@ -699,24 +919,27 @@ export default function Dashboard(){
           </div>
         )}
 
-        {/* ═══════════ TOOL DIRECTORY ═══════════ */}
+        {/* ═══════════ TOOL STATUS ═══════════ */}
         {tab==="directory"&&(
           <div className="panel" style={{animation:"fadeIn .6s ease .2s both"}}>
             <div className="panel-header">
-              <div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-amber)",boxShadow:"0 0 6px var(--accent-amber)"}}></div> Tool Directory</div>
-              <span className="panel-badge">{filteredTools.length} tools</span>
+              <div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-amber)",boxShadow:"0 0 6px var(--accent-amber)"}}></div> Tool Status</div>
+              <span className="panel-badge">{activeTools.length}/{TOOLS.length} active</span>
             </div>
             <div className="table-controls">
               <input className="search-input" placeholder="Search tool, site, team, developer..." value={dirSearch} onChange={e=>setDirSearch(e.target.value)}/>
             </div>
             <table>
               <thead><tr>
-                <th>Tool Name</th><th>Type</th><th>Site</th><th>Team</th><th>Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th><th>Test Report</th>
+                <th>Active</th><th>Tool Name</th><th>Type</th><th>Site</th><th>Team</th><th>Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th>
               </tr></thead>
               <tbody>
-                {filteredTools.map(t=>(
-                  <tr key={t.id}>
-                    <td style={{color:"var(--text-primary)",fontWeight:500}}>{t.name}</td>
+                {filteredTools.map(t=>{
+                  const off=disabledTools.has(t.id);
+                  return(
+                  <tr key={t.id} style={{opacity:off?0.4:1,transition:"opacity .2s"}}>
+                    <td><label className="toggle-switch" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={!off} onChange={()=>toggleTool(t.id)}/><span className="toggle-slider"></span></label></td>
+                    <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{t.name}{off&&<span className="retired-tag">已退役</span>}</td>
                     <td><span className={t.cat==="HW"?"cat-hw":"cat-sw"}>{t.cat}</span></td>
                     <td style={{fontWeight:500}}>{t.site}</td>
                     <td>{t.team}</td>
@@ -725,57 +948,15 @@ export default function Dashboard(){
                     <td style={{color:"var(--text-primary)"}}>{t.dev.name}</td>
                     <td><a href={`mailto:${t.dev.email}`} style={{color:"var(--accent-cyan)",textDecoration:"none",fontSize:11}}>{t.dev.email}</a></td>
                     <td className="mono">{t.dev.ext}</td>
-                    <td>{t.hasReport?<span className="badge badge-pass">YES</span>:<span style={{color:"var(--text-muted)",fontSize:10}}>—</span>}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </main>
 
-      {/* ═══ MODAL ═══ */}
-      {modalLog&&modalTool&&modalTool.report&&(
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <div className="modal-title">📋 {modalTool.name} — 測試報告</div>
-                <div className="modal-sub">{modalLog.filename} · {modalLog.tester} · {modalTool.site} · {modalLog.timeStr}</div>
-              </div>
-              <button className="modal-close" onClick={closeModal}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="modal-summary">
-                <div className="sum-card"><div className="sum-label">Total Items</div><div className="sum-val val-total">{modalTool.report.length}</div></div>
-                <div className="sum-card"><div className="sum-label">Passed</div><div className="sum-val val-pass">{modalTool.report.filter(r=>r.result==="pass").length}</div></div>
-                <div className="sum-card"><div className="sum-label">Failed</div><div className="sum-val val-fail">{modalTool.report.filter(r=>r.result==="fail").length}</div></div>
-                <div className="sum-card"><div className="sum-label">Total Issues</div><div className="sum-val val-warn">{modalTool.report.reduce((a,r)=>a+r.issues,0)}</div></div>
-              </div>
-              <div className="section-title">逐項測試結果</div>
-              {modalTool.report.map((item,i)=>(
-                <div key={i}>
-                  <div className={`test-item ${expandedTest===i?"expanded":""}`} onClick={()=>setExpandedTest(expandedTest===i?null:i)}>
-                    <div className="test-index">{String(i+1).padStart(2,"0")}</div>
-                    <div className="test-name">{item.item}</div>
-                    <div className="test-duration">{ITEM_DURS[i%ITEM_DURS.length]}</div>
-                    <ResultBadge result={item.result}/>
-                    <span className={`test-issues ${item.issues>0?"issues-some":"issues-none"}`}>{item.issues>0?`⚠ ${item.issues} issues`:"—"}</span>
-                  </div>
-                  {expandedTest===i&&(
-                    <div className="test-detail">
-                      <div className="detail-row"><span className="detail-key">Log Output</span><span className="detail-val">{item.notes}</span></div>
-                      <div className="detail-row"><span className="detail-key">Duration</span><span className="detail-val">{ITEM_DURS[i%ITEM_DURS.length]}</span></div>
-                      <div className="detail-row"><span className="detail-key">Issues Found</span><span className="detail-val" style={{color:item.issues>0?"var(--accent-red)":"var(--accent-teal)"}}>{item.issues}</span></div>
-                      <div className="detail-row"><span className="detail-key">Status</span><span className="detail-val">{item.result.toUpperCase()}</span></div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {notif&&<div style={{position:"fixed",bottom:24,right:24,background:"#0d1620",border:"1px solid var(--accent-teal)",borderRadius:8,padding:"12px 18px",color:"var(--accent-teal)",fontFamily:"'DM Mono',monospace",fontSize:12,zIndex:9999,animation:"fadeIn .3s ease",boxShadow:"0 0 20px rgba(0,184,148,0.2)"}}>{notif}</div>}
     </>
