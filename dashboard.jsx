@@ -844,7 +844,7 @@ export default function Dashboard(){
                 {SITES.map(s=>(
                   <div key={s} className="site-col">
                     <div className="site-col-header">{s}</div>
-                    <RankingPanelInner data={R.totalToolBySite[s]||[]} barBg="var(--accent-teal)"/>
+                    <RankingPanelInner data={R.totalToolBySite[s]||[]} barBg="var(--accent-teal)" lowThreshold={0}/>
                   </div>
                 ))}
               </div>
