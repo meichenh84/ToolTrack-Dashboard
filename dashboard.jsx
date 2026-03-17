@@ -72,9 +72,9 @@ const TOOLS = [
 
 // ── Site testers ──
 const SITE_TESTERS = {
-  TPE: ["陳小明","李佳芸","黃志強","周雅萍"],
-  XM: ["劉偉明","何美芳"],
-  FQ: ["鄭建國","許淑惠"],
+  TPE: [{name:"陳小明",test_unit:"Monitor"},{name:"李佳芸",test_unit:"TV"},{name:"黃志強",test_unit:"Monitor"},{name:"周雅萍",test_unit:"TV"}],
+  XM: [{name:"劉偉明",test_unit:"TV"},{name:"何美芳",test_unit:"TV"}],
+  FQ: [{name:"鄭建國",test_unit:"Monitor"},{name:"許淑惠",test_unit:"Monitor"}],
 };
 
 // ── Result patterns per tool (deterministic) ──
@@ -224,7 +224,7 @@ const ALL_LOGS = (() => {
       Object.entries(years).forEach(([year, months]) => {
         Object.entries(months).forEach(([month, count]) => {
           for (let j = 0; j < count; j++) {
-            const testers = SITE_TESTERS[site];
+            const testerObj = SITE_TESTERS[site][idx % SITE_TESTERS[site].length];
             const day = 3 + ((idx * 7 + j * 11) % 25);
             const hour = 8 + (idx * 3) % 10;
             const min = (idx * 17) % 60;
@@ -232,9 +232,9 @@ const ALL_LOGS = (() => {
             logs.push({
               toolId: tool.id, toolName: tool.name, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
-              test_site: site, test_unit: tool.dev_unit.replace(" Team",""),
+              test_site: site, test_unit: testerObj.test_unit,
               testItem: "—",
-              tester: testers[idx % testers.length],
+              tester: testerObj.name,
               time: d.getTime(),
               timeStr: `${year}/${String(+month).padStart(2,"0")}/${String(day).padStart(2,"0")} ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}`,
               result: tool.hasReport && pat ? pat[idx % pat.length] : null,

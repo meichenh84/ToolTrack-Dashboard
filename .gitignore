@@ -5,3 +5,6 @@ node_modules/
 *.jpg
 *.jpeg
 dist/
+logs/
+server/data.db
+server/uploads/
