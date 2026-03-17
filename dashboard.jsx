@@ -232,7 +232,7 @@ const ALL_LOGS = (() => {
             logs.push({
               toolId: tool.id, toolName: tool.name, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
-              site, team: tool.team, unit: tool.unit,
+              site, test_unit: tool.team.replace(" Team",""),
               testItem: "—",
               tester: testers[idx % testers.length],
               time: d.getTime(),
@@ -260,6 +260,25 @@ const TOOL_MONTHLY_USAGE = (() => {
     const y = d.getFullYear(), m = d.getMonth();
     const k = `${l.toolId}_${y}_${m}`;
     map[k] = (map[k] || 0) + 1;
+  });
+  const result = {};
+  [2025, 2026, 2027].forEach(year => {
+    result[year] = {};
+    TOOLS.forEach(tool => {
+      result[year][tool.id] = Array.from({length:12}, (_, i) => map[`${tool.id}_${year}_${i}`] || 0);
+    });
+  });
+  return result;
+})();
+
+const TOOL_MONTHLY_DURATION = (() => {
+  const map = {};
+  ALL_LOGS.forEach(l => {
+    const d = new Date(l.time);
+    const y = d.getFullYear(), m = d.getMonth();
+    const k = `${l.toolId}_${y}_${m}`;
+    const h = parseFloat(l.dur);
+    if (!isNaN(h)) map[k] = (map[k] || 0) + h;
   });
   const result = {};
   [2025, 2026, 2027].forEach(year => {
@@ -501,13 +520,13 @@ select.form-input{cursor:pointer}
 .year-select option{background:var(--bg-card);color:var(--text-primary)}
 .matrix-wrap{overflow-x:auto;padding:0 0 4px}
 .usage-matrix{width:100%;border-collapse:collapse}
-.usage-matrix th,.usage-matrix td{text-align:center;padding:10px 6px;font-size:11px;border-bottom:1px solid var(--border)}
+.usage-matrix th,.usage-matrix td{text-align:center;padding:16px 8px;font-size:13px;border-bottom:1px solid var(--border)}
 .matrix-tool-header{text-align:left!important;padding-left:16px!important;width:180px;min-width:180px;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;font-weight:500;background:rgba(0,0,0,0.2);position:sticky;left:0;z-index:2}
 .matrix-month-header{font-family:'Orbitron',monospace;font-size:10px;color:var(--text-secondary);font-weight:700;letter-spacing:1px;background:rgba(0,0,0,0.2)}
-.matrix-tool-name{text-align:left!important;padding-left:16px!important;font-size:11px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;min-width:180px;position:sticky;left:0;z-index:1;background:var(--bg-card)}
+.matrix-tool-name{text-align:left!important;padding-left:16px!important;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;min-width:180px;position:sticky;left:0;z-index:1;background:var(--bg-card)}
 .matrix-cell{font-weight:700;letter-spacing:.5px;transition:all .2s}
 .cell-used{color:#2ecc71;font-size:12px;font-family:'Orbitron',monospace;font-weight:800}
-.cell-count{font-size:13px;line-height:1}
+.cell-count{font-size:15px;line-height:1}
 .cell-check{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:2px solid #2ecc71;font-size:10px;line-height:1;margin-top:3px;color:#2ecc71;font-weight:700}
 .cell-unused{color:var(--accent-red);font-size:8px;letter-spacing:1px;opacity:.6}
 .matrix-row-unused{background:rgba(231,76,60,0.05)}
@@ -643,7 +662,7 @@ function RankingPanelInner({data,barBg,lowThreshold}){
   </>);
 }
 
-function RankingPanel({title,data,dotColor,barBg,className,note,lowThreshold}){
+function RankingPanel({title,data,dotColor,barBg,className,note,lowThreshold,showTotal}){
   const dot=dotColor?{background:dotColor,boxShadow:`0 0 6px ${dotColor}`}:{};
   if(!data.length)return<div className={`panel ${className||""}`}><div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={dot}></div>{title}</div></div><div style={{padding:20,color:"var(--text-muted)",fontSize:11}}>No data</div></div>;
   const max=data[0].count;
@@ -681,6 +700,12 @@ function RankingPanel({title,data,dotColor,barBg,className,note,lowThreshold}){
             </div>
           );
         })}
+        {showTotal&&<div className="tool-item" style={{borderTop:"2px solid var(--border-bright)",background:"rgba(0,212,255,0.04)",borderRadius:"0 0 8px 8px"}}>
+          <div className="tool-rank"></div>
+          <div className="tool-name-text" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</div>
+          <div className="tool-bar-wrap"></div>
+          <div className="tool-tests" style={{fontWeight:700,color:dotColor||"var(--accent-cyan)",fontSize:13}}>{data.reduce((s,d)=>s+d.count,0)}</div>
+        </div>}
       </div>
     </div>
   );
@@ -699,7 +724,8 @@ export default function Dashboard(){
   const[dragging,setDragging]=useState(false);
   const[notif,setNotif]=useState(null);
   const[dirSearch,setDirSearch]=useState("");
-  const[selectedYear,setSelectedYear]=useState(2026);
+  const[selectedPeriod,setSelectedPeriod]=useState("2026-3");
+  const[matrixFilter,setMatrixFilter]=useState("ALL");
   const[deletedIds,setDeletedIds]=useState(new Set());
   const[disabledTools,setDisabledTools]=useState(new Set());
   const[tools,setTools]=useState(TOOLS);
@@ -707,28 +733,31 @@ export default function Dashboard(){
   const[editingTool,setEditingTool]=useState(null);
   const emptyForm={name:"",v:"1.0.0",cat:"HW",site:"TPE",team:"",unit:"HW Q",devName:"",devEmail:"",devExt:"",hasReport:false};
   const[toolForm,setToolForm]=useState(emptyForm);
+  const[uploadedLogs,setUploadedLogs]=useState([]);
   const fileRef=useRef(null);
 
   useEffect(()=>{const tick=()=>{const n=new Date();setClock([n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,"0")).join(":"))};tick();const id=setInterval(tick,1000);return()=>clearInterval(id)},[]);
   useEffect(()=>{if(notif){const id=setTimeout(()=>setNotif(null),3000);return()=>clearTimeout(id)}},[notif]);
 
-  const filteredLogs=useMemo(()=>ALL_LOGS.filter(l=>{
+  const filteredLogs=useMemo(()=>[...uploadedLogs,...ALL_LOGS].filter(l=>{
     if(deletedIds.has(l.id))return false;
     const rm={pass:"PASS",fail:"FAIL",warning:"WARN"};
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
-    return l.filename.toLowerCase().includes(q)||l.uploader?.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.site.toLowerCase().includes(q);
-  }),[filter,search,deletedIds]);
+    return l.filename.toLowerCase().includes(q)||l.uploader?.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
+  }),[filter,search,deletedIds,uploadedLogs]);
 
   const sortedLogs=useMemo(()=>{
-    return[...filteredLogs].sort((a,b)=>{
+    const uploaded=filteredLogs.filter(l=>l.isUploaded);
+    const existing=[...filteredLogs.filter(l=>!l.isUploaded)].sort((a,b)=>{
       let av=a[sortCfg.key],bv=b[sortCfg.key];
       if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
       if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
       if(av<bv)return sortCfg.dir==="asc"?-1:1;
       if(av>bv)return sortCfg.dir==="asc"?1:-1;return 0;
     });
+    return[...uploaded,...existing];
   },[filteredLogs,sortCfg]);
 
   const handleSort=(key)=>setSortCfg(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
@@ -743,8 +772,54 @@ export default function Dashboard(){
 
   const handleDragOver=(e)=>{e.preventDefault();setDragging(true)};
   const handleDragLeave=()=>setDragging(false);
-  const handleDrop=(e)=>{e.preventDefault();setDragging(false);const f=Array.from(e.dataTransfer.files);if(f.length)setNotif(`✓ Uploaded: ${f[0].name}`)};
-  const handleFileSelect=(e)=>{const f=Array.from(e.target.files);if(f.length)setNotif(`✓ Uploaded: ${f[0].name}`)};
+
+  const parseLogContent=(text,filename)=>{
+    const get=(key)=>{const m=text.match(new RegExp(`^${key}:\\s*(.+)$`,"m"));return m?m[1].trim():null};
+    const toolName=get("Tool");
+    const site=get("Test Site");
+    const tester=get("Tester");
+    const testerEmail=get("Tester Email")||"—";
+    const testUnit=get("Test Unit");
+    const resultRaw=get("Result");
+    const logStart=get("Test_Log Start");
+    const logEnd=get("Test_Log End");
+    if(!toolName||!site||!tester||!logStart||!logEnd) return null;
+    const startDate=new Date(logStart.replace(/\//g,"-"));
+    const endDate=new Date(logEnd.replace(/\//g,"-"));
+    const durMs=endDate.getTime()-startDate.getTime();
+    const durH=(durMs/(1000*60*60)).toFixed(1);
+    const resultMap={"PASS":"pass","FAIL":"fail","WARNING":"warning","WARN":"warning"};
+    const result=resultRaw?resultMap[resultRaw.toUpperCase()]||null:null;
+    const matchedTool=tools.find(t=>t.name===toolName);
+    return{
+      toolId:matchedTool?matchedTool.id:`uploaded-${Date.now()}`,
+      toolName, cat:matchedTool?matchedTool.cat:"—", filename, isUploaded:true,
+      site, test_unit:testUnit||"—",
+      testItem:"—", tester, testerEmail,
+      time:startDate.getTime(),
+      timeStr:`${startDate.getFullYear()}/${String(startDate.getMonth()+1).padStart(2,"0")}/${String(startDate.getDate()).padStart(2,"0")} ${String(startDate.getHours()).padStart(2,"0")}:${String(startDate.getMinutes()).padStart(2,"0")}`,
+      result, dur:`${durH}h`,
+    };
+  };
+
+  const handleFileParse=(files)=>{
+    files.forEach(file=>{
+      const reader=new FileReader();
+      reader.onload=(e)=>{
+        const parsed=parseLogContent(e.target.result,file.name);
+        if(parsed){
+          setUploadedLogs(prev=>{const newId=ALL_LOGS.length+prev.length+1;return[{...parsed,id:newId},...prev]});
+          setNotif(`✓ 已解析並新增: ${file.name}`);
+        }else{
+          setNotif(`✗ 解析失敗: ${file.name}（格式不符）`);
+        }
+      };
+      reader.readAsText(file);
+    });
+  };
+
+  const handleDrop=(e)=>{e.preventDefault();setDragging(false);const f=Array.from(e.dataTransfer.files);if(f.length)handleFileParse(f)};
+  const handleFileSelect=(e)=>{const f=Array.from(e.target.files);if(f.length)handleFileParse(f);e.target.value=""};
   const handleDeleteLog=(id,filename)=>{if(confirm(`確定要刪除 ${filename} 嗎？`)){setDeletedIds(prev=>{const n=new Set(prev);n.add(id);return n});setNotif(`✓ 已刪除: ${filename}`)}}
 
   const filteredTools=useMemo(()=>{
@@ -794,7 +869,7 @@ export default function Dashboard(){
 
       {/* ═══ TABS ═══ */}
       <div className="nav-tabs">
-        {[["overview","⬡ Overview"],["upload","≡ Upload Log"],["directory","◈ Tool Status"]].map(([k,l])=>(
+        {[["overview","⬡ Overview"],["statistic","▣ Statistic"],["upload","≡ Upload Log"],["directory","◈ Tool Status"]].map(([k,l])=>(
           <div key={k} className={`tab ${tab===k?"active":""}`} onClick={()=>setTab(k)}>{l}</div>
         ))}
       </div>
@@ -805,8 +880,8 @@ export default function Dashboard(){
         {tab==="overview"&&<>
           <div className="stats-row">
             {[
-              {label:"Total Tools",val:<><CountUp target={activeTools.length}/></>,sub:`HW ${totalHW} / SW ${totalSW}`,accent:"var(--accent-cyan)"},
-              {label:"Total Logs",val:<CountUp target={ALL_LOGS.length}/>,sub:"All uploads",accent:"var(--accent-teal)"},
+              {label:"Total Tools",val:<><CountUp target={activeTools.length}/></>,sub:"",accent:"var(--accent-cyan)"},
+              {label:"Total Duration",val:<><CountUp target={Math.round([...uploadedLogs,...ALL_LOGS].reduce((sum,l)=>{const n=parseFloat(l.dur);return sum+(isNaN(n)?0:n)},0))}/><span style={{fontSize:14,fontWeight:400}}>h</span></>,sub:"All saved hours",accent:"var(--accent-teal)"},
             ].map((s,i)=>(
               <div key={i} className="stat-card" style={{"--accent-color":s.accent}}>
                 <div className="stat-label">{s.label}</div>
@@ -818,51 +893,119 @@ export default function Dashboard(){
 
           <div className="rank-stack">
             {/* ── Yearly Usage Matrix ── */}
-            <div className="panel hero-panel">
-              <div className="panel-header" style={{justifyContent:"space-between"}}>
+            {(()=>{
+              // Build 12-month window ending at selectedPeriod
+              const[selY,selM]=selectedPeriod.split("-").map(Number);
+              const months12=[];
+              for(let i=0;i<12;i++){
+                let mm=selM-i, yy=selY;
+                while(mm<1){mm+=12;yy--}
+                months12.push({year:yy,month:mm});
+              }
+              // Dropdown options: 2026/3 down to 2025/1
+              const periodOptions=[];
+              for(let y=2026;y>=2025;y--){
+                const maxM=y===2026?3:12;
+                const minM=y===2025?1:1;
+                for(let m=maxM;m>=minM;m--){
+                  periodOptions.push({value:`${y}-${m}`,label:`${y}/${String(m).padStart(2,"0")}`});
+                }
+              }
+              // Filter LOG data by test fields: site → l.site, unit → l.test_unit
+              const filteredMatrixLogs = matrixFilter==="ALL" ? ALL_LOGS
+                : ["TPE","XM","FQ"].includes(matrixFilter) ? ALL_LOGS.filter(l=>l.site===matrixFilter)
+                : ALL_LOGS.filter(l=>l.test_unit&&l.test_unit.toUpperCase()===matrixFilter);
+              // Lookup: get count and duration for a tool at year/month (from filtered logs)
+              const getCount=(toolId,year,month)=>{
+                return filteredMatrixLogs.filter(l=>{
+                  const d=new Date(l.time);
+                  return l.toolId===toolId&&d.getFullYear()===year&&d.getMonth()===month-1;
+                }).length;
+              };
+              const getDur=(toolId,year,month)=>{
+                return filteredMatrixLogs.filter(l=>{
+                  const d=new Date(l.time);
+                  return l.toolId===toolId&&d.getFullYear()===year&&d.getMonth()===month-1;
+                }).reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+              };
+              // Check if month is in the future (no data possible)
+              const now=new Date();
+              const isFuture=(y,m)=>y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()+1);
+
+              return(
+              <div className="panel hero-panel">
+              <div className="panel-header" style={{justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
                 <div className="panel-title">
                   <div className="panel-title-dot" style={{background:"var(--accent-cyan)",boxShadow:"0 0 6px var(--accent-cyan)"}}></div>
-                  所有工具年度使用狀態
+                  所有工具近 12 個月使用與累計總使用狀態(2025/01 起 ~ 2026/03 止)
                 </div>
-                <select className="year-select" value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))}>
-                  <option value={2025}>2025</option>
-                  <option value={2026}>2026</option>
-                  <option value={2027}>2027</option>
-                </select>
+                <div style={{display:"flex",alignItems:"center",gap:16}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>期間選擇：</span>
+                    <select className="year-select" value={selectedPeriod} onChange={e=>setSelectedPeriod(e.target.value)}>
+                      {periodOptions.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>資料篩選：</span>
+                    <select className="year-select" value={matrixFilter} onChange={e=>setMatrixFilter(e.target.value)}>
+                      {["ALL","TPE","XM","FQ","TV","MONITOR"].map(f=><option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </div>
+                </div>
               </div>
               <div className="panel-note">
-                追蹤各工具每月是否實際投入使用 — <strong>整年未使用的工具需特別關注是否落實於日常測試流程</strong>
+                追蹤各工具每月是否實際投入使用 — <strong>整期未使用的工具需特別關注是否落實於日常測試流程</strong>　｜　<span style={{color:"var(--accent-teal)"}}>綠色數字</span> = 該月測試次數與測試時數(即節省時數)　｜　<span style={{color:"var(--accent-red)"}}>N/A</span> = 該月無使用紀錄
               </div>
               <div className="matrix-wrap">
                 <table className="usage-matrix">
                   <thead><tr>
                     <th className="matrix-tool-header">工具名稱</th>
-                    {["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"].map((m,i)=><th key={i} className="matrix-month-header">{m}</th>)}
+                    <th className="matrix-month-header"><div style={{lineHeight:1.6}}>總次數<br/><span style={{color:"var(--accent-teal)"}}>總時數</span></div></th>
+                    {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
                   </tr></thead>
                   <tbody>
                     {activeTools.map(tool=>{
-                      const usage=(TOOL_MONTHLY_USAGE[selectedYear]||{})[tool.id]||Array(12).fill(0);
-                      const usedCount=usage.filter(v=>v>0).length;
+                      const cells=months12.map(m=>{const count=getCount(tool.id,m.year,m.month);const dur=getDur(tool.id,m.year,m.month);return{count,dur}});
+                      const usedCount=cells.filter(c=>c.count>0).length;
                       return(
                         <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
-                          <td className="matrix-tool-name">
-                            <span className={`cat-${tool.cat.toLowerCase()}`}>{tool.cat}</span>
-                            {tool.name}
-                          </td>
-                          {usage.map((count,i)=>(
-                            <td key={i} className={`matrix-cell ${count>0?"cell-used":"cell-unused"}`}>
-                              {count>0?<><div className="cell-count">{count}</div><div className="cell-check">✓</div></>:<>Unused</>}
+                          <td className="matrix-tool-name">{tool.name}</td>
+                          {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
+                          <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
+                          )})()}
+                          {cells.map((c,i)=>(
+                            <td key={i} className={`matrix-cell ${c.count>0?"cell-used":"cell-unused"}`}>
+                              {c.count>0?<><div className="cell-count">{c.count} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
                             </td>
                           ))}
                         </tr>
                       );
                     })}
+                    {(()=>{
+                      const grandCount=filteredMatrixLogs.filter(l=>activeTools.some(t=>t.id===l.toolId)).length;
+                      const grandDur=filteredMatrixLogs.filter(l=>activeTools.some(t=>t.id===l.toolId)).reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+                      return(
+                      <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
+                        <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</td>
+                        <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
+                        {months12.map((m,i)=>{
+                          const mCount=activeTools.reduce((s,t)=>s+getCount(t.id,m.year,m.month),0);
+                          const mDur=activeTools.reduce((s,t)=>s+getDur(t.id,m.year,m.month),0);
+                          return(
+                            <td key={i} className="matrix-cell" style={{fontWeight:700}}>
+                              {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:15}}>{mCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
+                            </td>
+                          );
+                        })}
+                      </tr>);
+                    })()}
                   </tbody>
                 </table>
               </div>
               {(()=>{
-                const yearData=(TOOL_MONTHLY_USAGE[selectedYear]||{});
-                const allUsed=activeTools.filter(t=>(yearData[t.id]||[]).some(v=>v>0)).length;
+                const counts=activeTools.map(t=>months12.some(m=>(getCount(t.id,m.year,m.month)||0)>0));
+                const allUsed=counts.filter(Boolean).length;
                 const allUnused=activeTools.length-allUsed;
                 return(
                   <div className="matrix-summary">
@@ -870,33 +1013,114 @@ export default function Dashboard(){
                     <div>未使用工具：<span className="unused-count">{allUnused}</span></div>
                   </div>
                 );
-              })()}</div>
-            <RankingPanel title="近一個月各 Site 使用工具次數" data={R.recentSiteUsage} dotColor="var(--accent-blue)" barBg="var(--accent-blue)"/>
-            <div className="panel">
-              <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-blue)",boxShadow:"0 0 6px var(--accent-blue)"}}></div>近一個月所有工具已被各 Site 使用次數</div></div>
-              <div className="site-columns">
-                {SITES.map(s=>(
-                  <div key={s} className="site-col">
-                    <div className="site-col-header">{s}</div>
-                    <RankingPanelInner data={R.recentToolBySite[s]||[]} barBg="var(--accent-blue)" lowThreshold={0}/>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="panel">
-              <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>所有工具已被各 Site 使用總次數</div></div>
-              <div className="site-columns">
-                {SITES.map(s=>(
-                  <div key={s} className="site-col">
-                    <div className="site-col-header">{s}</div>
-                    <RankingPanelInner data={R.totalToolBySite[s]||[]} barBg="var(--accent-teal)" lowThreshold={0}/>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <RankingPanel title="工具協助 Debug 累計 Fail 數" data={R.toolFails} dotColor="var(--accent-red)" barBg="var(--accent-red)"/>
+              })()}
+              </div>);
+            })()}
+          </div>
+        </>}
 
-            <RankingPanel title="測試者上傳次數" data={R.testerUploads} dotColor="var(--accent-amber)" barBg="linear-gradient(90deg,var(--accent-amber),#e67e22)"/>
+        {/* ═══════════ STATISTIC ═══════════ */}
+        {tab==="statistic"&&<>
+          <div className="rank-stack">
+            <div className="panel">
+              <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>所有工具已被各 Site 使用總次數與總時數</div></div>
+              <div className="site-columns">
+                {SITES.map(s=>{
+                  const toolIds=new Set(activeTools.map(t=>t.id));
+                  const siteLogs=ALL_LOGS.filter(l=>l.site===s&&toolIds.has(l.toolId));
+                  const toolMap={};
+                  activeTools.forEach(t=>{toolMap[t.name]={count:0,dur:0}});
+                  siteLogs.forEach(l=>{if(toolMap[l.toolName]){toolMap[l.toolName].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolName].dur+=h}});
+                  const data=Object.entries(toolMap).map(([name,v])=>({name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
+                  const max=data.length>0?data[0].count:0;
+                  const top3=data.slice(0,3);
+                  const medals=["🏆","🥈","🥉"];
+                  const tiers=["gold","silver","bronze"];
+                  const totalCount=data.reduce((s,d)=>s+d.count,0);
+                  const totalDur=data.reduce((s,d)=>s+d.dur,0);
+                  return(
+                  <div key={s} className="site-col">
+                    <div className="site-col-header">{s}</div>
+                    {top3.length>0&&(
+                      <div className="podium">
+                        {top3.map((item,i)=>{
+                          const barH=max>0?Math.max(20,Math.round(item.count/max*110)):20;
+                          return(<div key={i} className={`podium-col ${tiers[i]}`}><div className="podium-medal">{medals[i]}</div><div className="podium-count">{item.count}</div><div className="podium-bar-v" style={{height:barH}}></div><div className="podium-name">{item.name}</div></div>);
+                        })}
+                      </div>
+                    )}
+                    <div className="tool-list">
+                      {data.map((item,i)=>{
+                        const isLow=item.count<=0;
+                        return(
+                          <div key={i} className={`tool-item ${i===0&&!isLow?"active":""} ${isLow?"low-usage":""}`}>
+                            <div className="tool-rank">{String(i+1).padStart(2,"0")}</div>
+                            <div className="tool-name-text">{item.name}{isLow&&<span className="low-tag">⚠ UNUSED</span>}</div>
+                            <div className="tool-bar-wrap"><div className="tool-bar" style={{width:`${max>0?(item.count/max*100).toFixed(0):0}%`,background:isLow?"var(--accent-red)":"var(--accent-teal)"}}></div></div>
+                            <div className="tool-tests" style={{color:isLow?"var(--accent-red)":"var(--accent-teal)"}}>{item.count}</div>
+                            <div style={{fontSize:10,color:"var(--accent-teal)",minWidth:45,textAlign:"right"}}>{item.dur.toFixed(1)}h</div>
+                          </div>
+                        );
+                      })}
+                      <div className="tool-item" style={{borderTop:"2px solid var(--border-bright)",background:"rgba(0,212,255,0.04)",borderRadius:"0 0 8px 8px"}}>
+                        <div className="tool-rank"></div>
+                        <div className="tool-name-text" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</div>
+                        <div className="tool-bar-wrap"></div>
+                        <div className="tool-tests" style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:13}}>{totalCount}</div>
+                        <div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",minWidth:45,textAlign:"right"}}>{totalDur.toFixed(1)}h</div>
+                      </div>
+                    </div>
+                  </div>);
+                })}
+              </div>
+            </div>
+            <RankingPanel title="工具協助 Debug 累計 Fail 數" data={R.toolFails} dotColor="var(--accent-red)" barBg="var(--accent-red)" showTotal/>
+            {(()=>{
+              const toolIds=new Set(activeTools.map(t=>t.id));
+              const testerMap={};
+              ALL_LOGS.filter(l=>toolIds.has(l.toolId)).forEach(l=>{
+                if(!testerMap[l.tester])testerMap[l.tester]={count:0,dur:0,site:l.site,test_unit:l.test_unit};
+                testerMap[l.tester].count++;
+                const h=parseFloat(l.dur);if(!isNaN(h))testerMap[l.tester].dur+=h;
+              });
+              const testerData=Object.entries(testerMap).map(([name,v])=>({name,count:v.count,dur:v.dur,site:v.site,unit:v.test_unit||"—"})).sort((a,b)=>b.count-a.count);
+              const max=testerData.length>0?testerData[0].count:0;
+              const top3=testerData.slice(0,3);
+              const medals=["🏆","🥈","🥉"];
+              const tiers=["gold","silver","bronze"];
+              const totalCount=testerData.reduce((s,d)=>s+d.count,0);
+              const totalDur=testerData.reduce((s,d)=>s+d.dur,0);
+              return(
+              <div className="panel">
+                <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-amber)",boxShadow:"0 0 6px var(--accent-amber)"}}></div>測試者上傳次數與時數</div></div>
+                {top3.length>0&&(
+                  <div className="podium">
+                    {top3.map((item,i)=>{
+                      const barH=max>0?Math.max(20,Math.round(item.count/max*110)):20;
+                      return(<div key={i} className={`podium-col ${tiers[i]}`}><div className="podium-medal">{medals[i]}</div><div className="podium-count">{item.count}</div><div className="podium-bar-v" style={{height:barH}}></div><div className="podium-name">{item.name}</div></div>);
+                    })}
+                  </div>
+                )}
+                <div className="tool-list">
+                  {testerData.map((item,i)=>(
+                    <div key={i} className={`tool-item ${i===0?"active":""}`}>
+                      <div className="tool-rank">{String(i+1).padStart(2,"0")}</div>
+                      <div className="tool-name-text" style={{flex:1}}>{item.name}<span style={{fontSize:10,color:"var(--accent-cyan)",padding:"2px 6px",background:"rgba(0,212,255,0.1)",borderRadius:4,marginLeft:8}}>{item.site}</span><span style={{fontSize:10,color:"var(--accent-teal)",padding:"2px 6px",background:"rgba(0,184,148,0.1)",borderRadius:4,marginLeft:4}}>{item.unit}</span></div>
+                      <div className="tool-bar-wrap"><div className="tool-bar" style={{width:`${max>0?(item.count/max*100).toFixed(0):0}%`,background:"linear-gradient(90deg,var(--accent-amber),#e67e22)"}}></div></div>
+                      <div className="tool-tests" style={{color:"var(--accent-amber)"}}>{item.count}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",minWidth:50,textAlign:"right"}}>{item.dur.toFixed(1)}h</div>
+                    </div>
+                  ))}
+                  <div className="tool-item" style={{borderTop:"2px solid var(--border-bright)",background:"rgba(0,212,255,0.04)",borderRadius:"0 0 8px 8px"}}>
+                    <div className="tool-rank"></div>
+                    <div className="tool-name-text" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</div>
+                    <div className="tool-bar-wrap"></div>
+                    <div className="tool-tests" style={{fontWeight:700,color:"var(--accent-amber)",fontSize:13}}>{totalCount}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",minWidth:50,textAlign:"right"}}>{totalDur.toFixed(1)}h</div>
+                  </div>
+                </div>
+              </div>);
+            })()}
           </div>
         </>}
 
@@ -916,7 +1140,7 @@ export default function Dashboard(){
             >
               <div className="upload-icon">📂</div>
               <div className="upload-text">Drop test log files here</div>
-              <div className="upload-sub">Supports .log / .json / .csv / .txt / .xml</div>
+              <div className="upload-sub">Supports .txt</div>
               <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>SELECT FILES</button>
             </div>
             <input type="file" ref={fileRef} multiple onChange={handleFileSelect}/>
@@ -937,7 +1161,9 @@ export default function Dashboard(){
                 <th className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
                 <th className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
                 <th className="sortable" onClick={()=>handleSort("site")}>Test Site{sortIcon("site")}</th>
+                <th className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
                 <th className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
+                <th className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
                 <th className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
                 <th className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
                 <th>Action</th>
@@ -949,10 +1175,12 @@ export default function Dashboard(){
                     <tr key={l.id}>
                       <td className="mono" style={{color:"var(--text-muted)"}}>{String(l.id).padStart(3,"0")}</td>
                       <td className="mono">{l.timeStr}</td>
-                      <td><span className={l.cat==="HW"?"cat-hw":"cat-sw"}>{l.cat}</span>{l.toolName}</td>
+                      <td>{l.toolName}</td>
                       <td style={{color:"var(--accent-cyan)",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.filename}</td>
                       <td>{l.site}</td>
+                      <td>{l.test_unit||"—"}</td>
                       <td>{l.tester}</td>
+                      <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
                       <td className="mono">{l.dur}</td>
                       <td><ResultBadge result={l.result}/></td>
                       <td><button className="delete-btn" onClick={()=>handleDeleteLog(l.id,l.filename)}>刪除</button></td>
@@ -977,7 +1205,7 @@ export default function Dashboard(){
             </div>
             <table>
               <thead><tr>
-                <th>Active</th><th>Tool Name</th><th>Type</th><th>Site</th><th>Team</th><th>Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th><th>Action</th>
+                <th>Active</th><th>Tool Name</th><th>Type</th><th>Dev Site</th><th>Dev Unit</th><th>Version</th><th>Developer</th><th>Email</th><th>Ext</th><th>Action</th>
               </tr></thead>
               <tbody>
                 {filteredTools.map(t=>{
@@ -989,7 +1217,6 @@ export default function Dashboard(){
                     <td><span className={t.cat==="HW"?"cat-hw":"cat-sw"}>{t.cat}</span></td>
                     <td style={{fontWeight:500}}>{t.site}</td>
                     <td>{t.team}</td>
-                    <td>{t.unit}</td>
                     <td className="mono" style={{color:"var(--text-muted)"}}>{t.v}</td>
                     <td style={{color:"var(--text-primary)"}}>{t.dev.name}</td>
                     <td><a href={`mailto:${t.dev.email}`} style={{color:"var(--accent-cyan)",textDecoration:"none",fontSize:11}}>{t.dev.email}</a></td>
