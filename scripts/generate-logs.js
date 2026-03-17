@@ -38,9 +38,11 @@ TOOLS.forEach((tool) => {
       Object.entries(months).forEach(([month, count]) => {
         for (let j = 0; j < count; j++) {
           const testerObj = SITE_TESTERS[site][idx % SITE_TESTERS[site].length];
-          const day = 3 + ((idx * 7 + j * 11) % 25);
+          let day = 3 + ((idx * 7 + j * 11) % 25);
           const hour = 8 + ((idx * 3) % 10);
           const min = (idx * 17) % 60;
+          // Cap at 2026/03/17 (today) — future dates don't exist yet
+          if (+year === 2026 && +month === 3 && day > 17) day = 3 + (idx % 15);
           const startDate = new Date(+year, +month - 1, day, hour, min);
 
           const result = tool.hasReport && pat ? pat[idx % pat.length] : null;

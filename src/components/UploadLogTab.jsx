@@ -4,7 +4,7 @@ import ResultBadge from "./ResultBadge.jsx";
 export default function UploadLogTab({logs,onUpload,onDelete}){
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("ALL");
-  const[sortCfg,setSortCfg]=useState({key:"id",dir:"asc"});
+  const[sortCfg,setSortCfg]=useState({key:"uploadedAt",dir:"desc"});
   const[dragging,setDragging]=useState(false);
   const fileRef=useRef(null);
 
@@ -62,8 +62,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
       <table>
         <thead><tr>
-          <th style={{width:"4%"}} className="sortable" onClick={()=>handleSort("id")}>#  {sortIcon("id")}</th>
-          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("timeStr")}>Upload Time{sortIcon("timeStr")}</th>
+          <th style={{width:"4%"}}>#</th>
+          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>Upload Time{sortIcon("uploadedAt")}</th>
           <th style={{width:"12%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
           <th style={{width:"15%"}} className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
           <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
@@ -75,10 +75,10 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           <th style={{width:"6%"}}>Action</th>
         </tr></thead>
         <tbody>
-          {sortedLogs.map(l=>(
+          {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
-              <td className="mono" style={{color:"var(--text-muted)"}}>{String(l.id).padStart(3,"0")}</td>
-              <td className="mono">{l.timeStr}</td>
+              <td className="mono" style={{color:"var(--text-muted)"}}>{String(i+1).padStart(3,"0")}</td>
+              <td className="mono">{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
               <td style={{color:"var(--accent-cyan)",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.filename}</td>
               <td>{l.test_site}</td>

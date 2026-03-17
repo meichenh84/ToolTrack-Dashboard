@@ -57,6 +57,7 @@ db.exec(`
     time INTEGER,
     time_str TEXT,
     dur TEXT,
+    uploaded_at INTEGER,
     deleted INTEGER DEFAULT 0
   );
 `);
@@ -132,8 +133,8 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
@@ -141,7 +142,7 @@ function importLogs() {
       const content = fs.readFileSync(path.join(LOGS_DIR, filename), "utf-8");
       const p = parseLogContent(content, filename);
       if (p) {
-        const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur);
+        const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, p.time);
         if (info.changes > 0) imported++;
       }
     });
@@ -195,12 +196,17 @@ app.put("/api/tools/:id/toggle", (req, res) => {
 
 // ── Logs ──
 app.get("/api/logs", (req, res) => {
-  const rows = db.prepare("SELECT * FROM logs WHERE deleted = 0 ORDER BY time DESC").all();
+  const rows = db.prepare("SELECT * FROM logs WHERE deleted = 0 ORDER BY uploaded_at DESC").all();
+  const fmtTime = (ts) => {
+    const d = new Date(ts);
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  };
   res.json(rows.map((l) => ({
     id: l.id, toolId: l.tool_id, toolName: l.tool_name, cat: l.cat,
     filename: l.filename, test_site: l.test_site, test_unit: l.test_unit,
     tester: l.tester, testerEmail: l.tester_email,
     result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
+    uploadedAt: l.uploaded_at, uploadedAtStr: fmtTime(l.uploaded_at),
   })));
 });
 
@@ -210,21 +216,33 @@ app.post("/api/logs/upload", upload.array("files"), (req, res) => {
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
-    const content = fs.readFileSync(file.path, "utf-8");
-    const p = parseLogContent(content, file.originalname);
-    if (p) {
-      // Save to logs/ directory
-      fs.copyFileSync(file.path, path.join(LOGS_DIR, file.originalname));
-      const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur);
-      results.push({ filename: file.originalname, success: true, id: info.lastInsertRowid });
-    } else {
-      results.push({ filename: file.originalname, success: false, error: "格式不符" });
+    try {
+      const content = fs.readFileSync(file.path, "utf-8");
+      const p = parseLogContent(content, file.originalname);
+      if (p) {
+        // Check for duplicate filename
+        const existing = db.prepare("SELECT id FROM logs WHERE filename = ? AND deleted = 0").get(p.filename);
+        if (existing) {
+          results.push({ filename: file.originalname, success: false, error: "檔案已存在（重複上傳）" });
+        } else {
+          // If previously soft-deleted, hard-delete first
+          db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
+          fs.copyFileSync(file.path, path.join(LOGS_DIR, file.originalname));
+          const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, Date.now());
+          results.push({ filename: file.originalname, success: true, id: info.lastInsertRowid });
+        }
+      } else {
+        results.push({ filename: file.originalname, success: false, error: "格式不符" });
+      }
+    } catch (err) {
+      results.push({ filename: file.originalname, success: false, error: err.message });
+    } finally {
+      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     }
-    fs.unlinkSync(file.path);
   });
   res.json({ results });
 });
