@@ -51,7 +51,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
         <div className="upload-sub">Supports .txt</div>
         <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>SELECT FILES</button>
       </div>
-      <input type="file" ref={fileRef} multiple onChange={handleFileSelect}/>
+      <input type="file" ref={fileRef} multiple accept=".txt" onChange={handleFileSelect}/>
 
       <div className="table-controls">
         <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -80,14 +80,14 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td className="mono" style={{color:"var(--text-muted)"}}>{String(i+1).padStart(3,"0")}</td>
               <td className="mono">{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
-              <td style={{color:"var(--accent-cyan)",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.filename}</td>
+              <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
               <td>{l.test_site}</td>
               <td>{l.test_unit||"—"}</td>
               <td>{l.tester}</td>
               <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
               <td className="mono">{l.dur}</td>
               <td><ResultBadge result={l.result}/></td>
-              <td><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>刪除</button></td>
+              <td><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>Delete</button></td>
             </tr>
           ))}
         </tbody>
