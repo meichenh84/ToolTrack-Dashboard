@@ -6,67 +6,67 @@ import { useState, useEffect, useRef, useMemo } from "react";
 
 const TOOLS = [
   // ── TPE (10 tools) ──
-  { id:"tpe-1",  name:"TPE Tool 1",  v:"2.3.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+  { id:"tpe-1",  name:"TPE Tool 1",  v:"2.3.0", cat:"HW", dev_site:"TPE", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:6 },
-  { id:"tpe-2",  name:"TPE Tool 2",  v:"1.2.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+  { id:"tpe-2",  name:"TPE Tool 2",  v:"1.2.0", cat:"HW", dev_site:"TPE", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:false, uses:3 },
-  { id:"tpe-3",  name:"TPE Tool 3",  v:"1.0.0", cat:"HW", site:"TPE", team:"Monitor Team", unit:"HW Q",
+  { id:"tpe-3",  name:"TPE Tool 3",  v:"1.0.0", cat:"HW", dev_site:"TPE", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"王建民",email:"jm.wang@company.com",ext:"2501"}, hasReport:true, uses:0 },
-  { id:"tpe-4",  name:"TPE Tool 4",  v:"3.1.0", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
+  { id:"tpe-4",  name:"TPE Tool 4",  v:"3.1.0", cat:"SW", dev_site:"TPE", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:true, uses:5 },
-  { id:"tpe-5",  name:"TPE Tool 5",  v:"1.0.5", cat:"SW", site:"TPE", team:"Monitor Team", unit:"SW Q",
+  { id:"tpe-5",  name:"TPE Tool 5",  v:"1.0.5", cat:"SW", dev_site:"TPE", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"林雅婷",email:"yt.lin@company.com",ext:"2502"}, hasReport:false, uses:3 },
-  { id:"tpe-6",  name:"TPE Tool 6",  v:"2.0.1", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
+  { id:"tpe-6",  name:"TPE Tool 6",  v:"2.0.1", cat:"HW", dev_site:"TPE", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:4 },
-  { id:"tpe-7",  name:"TPE Tool 7",  v:"1.5.0", cat:"HW", site:"TPE", team:"TV Team", unit:"HW Q",
+  { id:"tpe-7",  name:"TPE Tool 7",  v:"1.5.0", cat:"HW", dev_site:"TPE", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"張志偉",email:"cw.chang@company.com",ext:"2601"}, hasReport:true, uses:3 },
-  { id:"tpe-8",  name:"TPE Tool 8",  v:"2.2.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+  { id:"tpe-8",  name:"TPE Tool 8",  v:"2.2.0", cat:"SW", dev_site:"TPE", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:5 },
-  { id:"tpe-9",  name:"TPE Tool 9",  v:"1.3.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+  { id:"tpe-9",  name:"TPE Tool 9",  v:"1.3.0", cat:"SW", dev_site:"TPE", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:true, uses:3 },
-  { id:"tpe-10", name:"TPE Tool 10", v:"1.0.0", cat:"SW", site:"TPE", team:"TV Team", unit:"SW Q",
+  { id:"tpe-10", name:"TPE Tool 10", v:"1.0.0", cat:"SW", dev_site:"TPE", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"陳怡君",email:"yc.chen@company.com",ext:"2602"}, hasReport:false, uses:2 },
   // ── XM (10 tools) ──
-  { id:"xm-1",  name:"XM Tool 1",  v:"1.8.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+  { id:"xm-1",  name:"XM Tool 1",  v:"1.8.0", cat:"HW", dev_site:"XM", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:4 },
-  { id:"xm-2",  name:"XM Tool 2",  v:"2.0.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-2",  name:"XM Tool 2",  v:"2.0.0", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
-  { id:"xm-3",  name:"XM Tool 3",  v:"0.9.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-3",  name:"XM Tool 3",  v:"0.9.0", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0 },
-  { id:"xm-4",  name:"XM Tool 4",  v:"1.1.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-4",  name:"XM Tool 4",  v:"1.1.0", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
-  { id:"xm-5",  name:"XM Tool 5",  v:"1.4.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+  { id:"xm-5",  name:"XM Tool 5",  v:"1.4.0", cat:"HW", dev_site:"XM", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:2 },
-  { id:"xm-6",  name:"XM Tool 6",  v:"2.1.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+  { id:"xm-6",  name:"XM Tool 6",  v:"2.1.0", cat:"HW", dev_site:"XM", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:false, uses:4 },
-  { id:"xm-7",  name:"XM Tool 7",  v:"1.6.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-7",  name:"XM Tool 7",  v:"1.6.0", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:3 },
-  { id:"xm-8",  name:"XM Tool 8",  v:"1.0.1", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-8",  name:"XM Tool 8",  v:"1.0.1", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:false, uses:1 },
-  { id:"xm-9",  name:"XM Tool 9",  v:"2.3.0", cat:"HW", site:"XM", team:"TV Team", unit:"HW Q",
+  { id:"xm-9",  name:"XM Tool 9",  v:"2.3.0", cat:"HW", dev_site:"XM", dev_unit:"TV Team", unit:"HW Q",
     dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:5 },
-  { id:"xm-10", name:"XM Tool 10", v:"1.2.0", cat:"SW", site:"XM", team:"TV Team", unit:"SW Q",
+  { id:"xm-10", name:"XM Tool 10", v:"1.2.0", cat:"SW", dev_site:"XM", dev_unit:"TV Team", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0 },
   // ── FQ (10 tools) ──
-  { id:"fq-1",  name:"FQ Tool 1",  v:"2.5.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+  { id:"fq-1",  name:"FQ Tool 1",  v:"2.5.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:3 },
-  { id:"fq-2",  name:"FQ Tool 2",  v:"1.0.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+  { id:"fq-2",  name:"FQ Tool 2",  v:"1.0.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:2 },
-  { id:"fq-3",  name:"FQ Tool 3",  v:"1.0.2", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+  { id:"fq-3",  name:"FQ Tool 3",  v:"1.0.2", cat:"SW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:false, uses:1 },
-  { id:"fq-4",  name:"FQ Tool 4",  v:"1.3.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+  { id:"fq-4",  name:"FQ Tool 4",  v:"1.3.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:4 },
-  { id:"fq-5",  name:"FQ Tool 5",  v:"2.0.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+  { id:"fq-5",  name:"FQ Tool 5",  v:"2.0.0", cat:"SW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:2 },
-  { id:"fq-6",  name:"FQ Tool 6",  v:"1.5.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+  { id:"fq-6",  name:"FQ Tool 6",  v:"1.5.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:false, uses:3 },
-  { id:"fq-7",  name:"FQ Tool 7",  v:"1.1.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+  { id:"fq-7",  name:"FQ Tool 7",  v:"1.1.0", cat:"SW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:1 },
-  { id:"fq-8",  name:"FQ Tool 8",  v:"2.2.0", cat:"HW", site:"FQ", team:"Monitor Team", unit:"HW Q",
+  { id:"fq-8",  name:"FQ Tool 8",  v:"2.2.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:5 },
-  { id:"fq-9",  name:"FQ Tool 9",  v:"0.8.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+  { id:"fq-9",  name:"FQ Tool 9",  v:"0.8.0", cat:"SW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:true, uses:0 },
-  { id:"fq-10", name:"FQ Tool 10", v:"1.4.0", cat:"SW", site:"FQ", team:"Monitor Team", unit:"SW Q",
+  { id:"fq-10", name:"FQ Tool 10", v:"1.4.0", cat:"SW", dev_site:"FQ", dev_unit:"Monitor Team", unit:"SW Q",
     dev:{name:"趙美玲",email:"ml.zhao@company.com",ext:"4502"}, hasReport:false, uses:2 },
 ];
 
@@ -232,7 +232,7 @@ const ALL_LOGS = (() => {
             logs.push({
               toolId: tool.id, toolName: tool.name, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
-              site, test_unit: tool.team.replace(" Team",""),
+              test_site: site, test_unit: tool.dev_unit.replace(" Team",""),
               testItem: "—",
               tester: testers[idx % testers.length],
               time: d.getTime(),
@@ -316,7 +316,7 @@ function rankToolBySite(site, tools, logs) {
   const m = {};
   tools.forEach(t => { m[t.name] = 0; });
   const toolNames = new Set(tools.map(t=>t.name));
-  logs.filter(l=>l.site===site&&toolNames.has(l.toolName)).forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
+  logs.filter(l=>l.test_site===site&&toolNames.has(l.toolName)).forEach(l => { m[l.toolName] = (m[l.toolName]||0) + 1; });
   return Object.entries(m).map(([n,c])=>({name:n,count:c})).sort((a,b)=>b.count-a.count);
 }
 
@@ -326,7 +326,7 @@ function computeRankings(tools) {
   const recentActive = activeLogs.filter(l=>l.time>=ONE_MONTH_AGO);
   return {
     recentToolUsage:  rankToolUsage(recentActive, tools),
-    recentSiteUsage:  rank(recentActive, "site"),
+    recentSiteUsage:  rank(recentActive, "test_site"),
     recentToolBySite: Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, recentActive)])),
     totalToolBySite:  Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, activeLogs)])),
     toolFails:        tools.filter(t=>t.hasReport).map(t=>({
@@ -731,7 +731,7 @@ export default function Dashboard(){
   const[tools,setTools]=useState(TOOLS);
   const[showToolForm,setShowToolForm]=useState(false);
   const[editingTool,setEditingTool]=useState(null);
-  const emptyForm={name:"",v:"1.0.0",cat:"HW",site:"TPE",team:"",unit:"HW Q",devName:"",devEmail:"",devExt:"",hasReport:false};
+  const emptyForm={name:"",v:"1.0.0",cat:"HW",dev_site:"TPE",dev_unit:"",unit:"HW Q",devName:"",devEmail:"",devExt:"",hasReport:false};
   const[toolForm,setToolForm]=useState(emptyForm);
   const[uploadedLogs,setUploadedLogs]=useState([]);
   const fileRef=useRef(null);
@@ -745,7 +745,7 @@ export default function Dashboard(){
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
-    return l.filename.toLowerCase().includes(q)||l.uploader?.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
+    return l.filename.toLowerCase().includes(q)||l.uploader?.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.test_site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
   }),[filter,search,deletedIds,uploadedLogs]);
 
   const sortedLogs=useMemo(()=>{
@@ -794,7 +794,7 @@ export default function Dashboard(){
     return{
       toolId:matchedTool?matchedTool.id:`uploaded-${Date.now()}`,
       toolName, cat:matchedTool?matchedTool.cat:"—", filename, isUploaded:true,
-      site, test_unit:testUnit||"—",
+      test_site: site, test_unit:testUnit||"—",
       testItem:"—", tester, testerEmail,
       time:startDate.getTime(),
       timeStr:`${startDate.getFullYear()}/${String(startDate.getMonth()+1).padStart(2,"0")}/${String(startDate.getDate()).padStart(2,"0")} ${String(startDate.getHours()).padStart(2,"0")}:${String(startDate.getMinutes()).padStart(2,"0")}`,
@@ -825,14 +825,14 @@ export default function Dashboard(){
   const filteredTools=useMemo(()=>{
     if(!dirSearch)return tools;
     const q=dirSearch.toLowerCase();
-    return tools.filter(t=>t.name.toLowerCase().includes(q)||t.site.toLowerCase().includes(q)||t.team.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q));
+    return tools.filter(t=>t.name.toLowerCase().includes(q)||t.dev_site.toLowerCase().includes(q)||t.dev_unit.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q));
   },[dirSearch,tools]);
 
   const openAddTool=()=>{setEditingTool(null);setToolForm(emptyForm);setShowToolForm(true)};
-  const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,site:t.site,team:t.team,unit:t.unit,devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
+  const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,dev_site:t.dev_site,dev_unit:t.dev_unit,unit:t.unit,devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
   const handleSaveTool=()=>{
     if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
-    const buildTool=(id)=>({id,name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,site:toolForm.site,team:toolForm.team,unit:toolForm.unit,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport,uses:0});
+    const buildTool=(id)=>({id,name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,unit:toolForm.unit,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport,uses:0});
     if(editingTool){
       setTools(prev=>prev.map(t=>t.id===editingTool.id?{...t,...buildTool(t.id),uses:t.uses}:t));
       setNotif(`✓ Updated: ${toolForm.name}`);
@@ -911,9 +911,9 @@ export default function Dashboard(){
                   periodOptions.push({value:`${y}-${m}`,label:`${y}/${String(m).padStart(2,"0")}`});
                 }
               }
-              // Filter LOG data by test fields: site → l.site, unit → l.test_unit
+              // Filter LOG data by test fields: site → l.test_site, unit → l.test_unit
               const filteredMatrixLogs = matrixFilter==="ALL" ? ALL_LOGS
-                : ["TPE","XM","FQ"].includes(matrixFilter) ? ALL_LOGS.filter(l=>l.site===matrixFilter)
+                : ["TPE","XM","FQ"].includes(matrixFilter) ? ALL_LOGS.filter(l=>l.test_site===matrixFilter)
                 : ALL_LOGS.filter(l=>l.test_unit&&l.test_unit.toUpperCase()===matrixFilter);
               // Lookup: get count and duration for a tool at year/month (from filtered logs)
               const getCount=(toolId,year,month)=>{
@@ -1027,7 +1027,7 @@ export default function Dashboard(){
               <div className="site-columns">
                 {SITES.map(s=>{
                   const toolIds=new Set(activeTools.map(t=>t.id));
-                  const siteLogs=ALL_LOGS.filter(l=>l.site===s&&toolIds.has(l.toolId));
+                  const siteLogs=ALL_LOGS.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
                   const toolMap={};
                   activeTools.forEach(t=>{toolMap[t.name]={count:0,dur:0}});
                   siteLogs.forEach(l=>{if(toolMap[l.toolName]){toolMap[l.toolName].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolName].dur+=h}});
@@ -1079,11 +1079,11 @@ export default function Dashboard(){
               const toolIds=new Set(activeTools.map(t=>t.id));
               const testerMap={};
               ALL_LOGS.filter(l=>toolIds.has(l.toolId)).forEach(l=>{
-                if(!testerMap[l.tester])testerMap[l.tester]={count:0,dur:0,site:l.site,test_unit:l.test_unit};
+                if(!testerMap[l.tester])testerMap[l.tester]={count:0,dur:0,test_site:l.test_site,test_unit:l.test_unit};
                 testerMap[l.tester].count++;
                 const h=parseFloat(l.dur);if(!isNaN(h))testerMap[l.tester].dur+=h;
               });
-              const testerData=Object.entries(testerMap).map(([name,v])=>({name,count:v.count,dur:v.dur,site:v.site,unit:v.test_unit||"—"})).sort((a,b)=>b.count-a.count);
+              const testerData=Object.entries(testerMap).map(([name,v])=>({name,count:v.count,dur:v.dur,test_site:v.test_site,unit:v.test_unit||"—"})).sort((a,b)=>b.count-a.count);
               const max=testerData.length>0?testerData[0].count:0;
               const top3=testerData.slice(0,3);
               const medals=["🏆","🥈","🥉"];
@@ -1105,7 +1105,7 @@ export default function Dashboard(){
                   {testerData.map((item,i)=>(
                     <div key={i} className={`tool-item ${i===0?"active":""}`}>
                       <div className="tool-rank">{String(i+1).padStart(2,"0")}</div>
-                      <div className="tool-name-text" style={{flex:1}}>{item.name}<span style={{fontSize:10,color:"var(--accent-cyan)",padding:"2px 6px",background:"rgba(0,212,255,0.1)",borderRadius:4,marginLeft:8}}>{item.site}</span><span style={{fontSize:10,color:"var(--accent-teal)",padding:"2px 6px",background:"rgba(0,184,148,0.1)",borderRadius:4,marginLeft:4}}>{item.unit}</span></div>
+                      <div className="tool-name-text" style={{flex:1}}>{item.name}<span style={{fontSize:10,color:"var(--accent-cyan)",padding:"2px 6px",background:"rgba(0,212,255,0.1)",borderRadius:4,marginLeft:8}}>{item.test_site}</span><span style={{fontSize:10,color:"var(--accent-teal)",padding:"2px 6px",background:"rgba(0,184,148,0.1)",borderRadius:4,marginLeft:4}}>{item.unit}</span></div>
                       <div className="tool-bar-wrap"><div className="tool-bar" style={{width:`${max>0?(item.count/max*100).toFixed(0):0}%`,background:"linear-gradient(90deg,var(--accent-amber),#e67e22)"}}></div></div>
                       <div className="tool-tests" style={{color:"var(--accent-amber)"}}>{item.count}</div>
                       <div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",minWidth:50,textAlign:"right"}}>{item.dur.toFixed(1)}h</div>
@@ -1160,7 +1160,7 @@ export default function Dashboard(){
                 <th className="sortable" onClick={()=>handleSort("timeStr")}>Upload Time{sortIcon("timeStr")}</th>
                 <th className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
                 <th className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
-                <th className="sortable" onClick={()=>handleSort("site")}>Test Site{sortIcon("site")}</th>
+                <th className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
                 <th className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
                 <th className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
                 <th className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
@@ -1177,7 +1177,7 @@ export default function Dashboard(){
                       <td className="mono">{l.timeStr}</td>
                       <td>{l.toolName}</td>
                       <td style={{color:"var(--accent-cyan)",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.filename}</td>
-                      <td>{l.site}</td>
+                      <td>{l.test_site}</td>
                       <td>{l.test_unit||"—"}</td>
                       <td>{l.tester}</td>
                       <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
@@ -1215,8 +1215,8 @@ export default function Dashboard(){
                     <td><label className="toggle-switch" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={!off} onChange={()=>toggleTool(t.id)}/><span className="toggle-slider"></span></label></td>
                     <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{t.name}{off&&<span className="retired-tag">已退役</span>}</td>
                     <td><span className={t.cat==="HW"?"cat-hw":"cat-sw"}>{t.cat}</span></td>
-                    <td style={{fontWeight:500}}>{t.site}</td>
-                    <td>{t.team}</td>
+                    <td style={{fontWeight:500}}>{t.dev_site}</td>
+                    <td>{t.dev_unit}</td>
                     <td className="mono" style={{color:"var(--text-muted)"}}>{t.v}</td>
                     <td style={{color:"var(--text-primary)"}}>{t.dev.name}</td>
                     <td><a href={`mailto:${t.dev.email}`} style={{color:"var(--accent-cyan)",textDecoration:"none",fontSize:11}}>{t.dev.email}</a></td>
@@ -1261,12 +1261,12 @@ export default function Dashboard(){
                   </select>
                 </label>
                 <label className="form-label">Site
-                  <select className="form-input" value={toolForm.site} onChange={e=>setToolForm(p=>({...p,site:e.target.value}))}>
+                  <select className="form-input" value={toolForm.dev_site} onChange={e=>setToolForm(p=>({...p,dev_site:e.target.value}))}>
                     <option value="TPE">TPE</option><option value="XM">XM</option><option value="FQ">FQ</option>
                   </select>
                 </label>
                 <label className="form-label">Team
-                  <input className="form-input" value={toolForm.team} onChange={e=>setToolForm(p=>({...p,team:e.target.value}))} placeholder="e.g. Monitor Team"/>
+                  <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor Team"/>
                 </label>
                 <label className="form-label">Unit
                   <input className="form-input" value={toolForm.unit} onChange={e=>setToolForm(p=>({...p,unit:e.target.value}))} placeholder="HW Q / SW Q"/>
