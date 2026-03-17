@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import CountUp from "./CountUp.jsx";
 
 export default function OverviewTab({activeTools,allLogs}){
-  const[selectedPeriod,setSelectedPeriod]=useState("2026-3");
+  // Current month as default period
+  const[selectedPeriod,setSelectedPeriod]=useState(()=>{
+    const now=new Date();
+    return `${now.getFullYear()}-${now.getMonth()+1}`;
+  });
   const[matrixFilter,setMatrixFilter]=useState("ALL");
 
   // Build 12-month window ending at selectedPeriod
@@ -14,15 +18,27 @@ export default function OverviewTab({activeTools,allLogs}){
     months12.push({year:yy,month:mm});
   }
 
-  // Dropdown options: 2026/3 down to 2025/1
-  const periodOptions=[];
-  for(let y=2026;y>=2025;y--){
-    const maxM=y===2026?3:12;
-    const minM=y===2025?1:1;
-    for(let m=maxM;m>=minM;m--){
-      periodOptions.push({value:`${y}-${m}`,label:`${y}/${String(m).padStart(2,"0")}`});
+  // Dropdown options: from current month down to earliest log month
+  const periodOptions=useMemo(()=>{
+    const now=new Date();
+    const curY=now.getFullYear(), curM=now.getMonth()+1;
+    // Find earliest log month
+    let startY=curY, startM=curM;
+    if(allLogs.length>0){
+      const earliest=allLogs.reduce((min,l)=>l.time<min?l.time:min,allLogs[0].time);
+      const d=new Date(earliest);
+      startY=d.getFullYear();
+      startM=d.getMonth()+1;
     }
-  }
+    const opts=[];
+    let y=curY, m=curM;
+    while(y>startY||(y===startY&&m>=startM)){
+      opts.push({value:`${y}-${m}`,label:`${y}/${String(m).padStart(2,"0")}`});
+      m--;
+      if(m<1){m=12;y--;}
+    }
+    return opts;
+  },[allLogs]);
 
   // Filter LOG data
   const filteredMatrixLogs = matrixFilter==="ALL" ? allLogs
@@ -62,7 +78,7 @@ export default function OverviewTab({activeTools,allLogs}){
         <div className="panel-header" style={{justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
           <div className="panel-title">
             <div className="panel-title-dot" style={{background:"var(--accent-cyan)",boxShadow:"0 0 6px var(--accent-cyan)"}}></div>
-            所有工具近 12 個月使用與累計總使用狀態(2025/01 起 ~ 2026/03 止)
+            所有工具近 12 個月使用與累計總使用狀態({months12[months12.length-1].year}/{String(months12[months12.length-1].month).padStart(2,"0")} 起 ~ {months12[0].year}/{String(months12[0].month).padStart(2,"0")} 止)
           </div>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>

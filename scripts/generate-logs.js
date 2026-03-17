@@ -49,7 +49,7 @@ TOOLS.forEach((tool) => {
           const durH = tool.hasReport ? (idx * 7 + 3) % 50 / 10 + 1 : 1;
           const endDate = new Date(startDate.getTime() + durH * 3600000);
 
-          const filename = `${tool.id}_${site.toLowerCase()}_${String(idx + 1).padStart(3, "0")}.log`;
+          const filename = `${tool.id}_${site.toLowerCase()}_${String(idx + 1).padStart(3, "0")}.txt`;
 
           let content = "[LOG_START]\n";
           content += `Tool: ${tool.name}\n`;
