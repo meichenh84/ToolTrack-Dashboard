@@ -67,7 +67,7 @@ db.exec(`
 // ══════════════════════════════════════════════════════════════════════════════
 
 const VALID_SITES = ["TPE", "XM", "FQ"];
-const VALID_RESULTS = { PASS: "pass", FAIL: "fail", WARNING: "warning", WARN: "warning" };
+const VALID_RESULTS = { PASS: "pass", FAIL: "fail", WARNING: "warning", WARN: "warning", STOPPED: "stopped", "N/A": "n/a" };
 
 const fmtDate = (d) =>
   `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
@@ -129,7 +129,7 @@ function validateAndParseLog(text, filename) {
   if (resultRaw) {
     result = VALID_RESULTS[resultRaw.toUpperCase()];
     if (!result) {
-      return { ok: false, error: `Result「${resultRaw}」不合法，須為 PASS / FAIL / WARNING` };
+      return { ok: false, error: `Result「${resultRaw}」不合法，須為 PASS / FAIL / WARNING / N/A` };
     }
   }
 
@@ -164,7 +164,7 @@ function validateAndParseLog(text, filename) {
       result,
       time: startDate.getTime(),
       time_str: fmtDate(startDate),
-      dur: !toolRow.has_report ? "—" : `${durH}h`,
+      dur: `${durH}h`,
     },
   };
 }
@@ -174,9 +174,14 @@ function validateAndParseLog(text, filename) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function seedTools() {
+  // Only seed when tools table is empty (first start or after DB delete)
+  // This preserves any Add/Edit/Delete changes made via the UI
+  const count = db.prepare("SELECT COUNT(*) as c FROM tools").get().c;
+  if (count > 0) return;
+
   const { TOOLS } = await import("../src/data/tools.js");
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO tools (id, name, version, cat, dev_site, dev_unit, unit, dev_name, dev_email, dev_ext, has_report, uses)
+    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, unit, dev_name, dev_email, dev_ext, has_report, uses)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   db.transaction(() => {
@@ -281,27 +286,29 @@ app.post("/api/logs/upload", upload.array("files"), (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
+    // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
+    const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
     try {
       const content = fs.readFileSync(file.path, "utf-8");
-      const v = validateAndParseLog(content, file.originalname);
+      const v = validateAndParseLog(content, originalName);
       if (!v.ok) {
-        results.push({ filename: file.originalname, success: false, error: v.error });
+        results.push({ filename: originalName, success: false, error: v.error });
       } else {
         const p = v.data;
         // Check for duplicate filename
         const existing = db.prepare("SELECT id FROM logs WHERE filename = ? AND deleted = 0").get(p.filename);
         if (existing) {
-          results.push({ filename: file.originalname, success: false, error: "檔案已存在（重複上傳）" });
+          results.push({ filename: originalName, success: false, error: "檔案已存在（重複上傳）" });
         } else {
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
-          fs.copyFileSync(file.path, path.join(LOGS_DIR, file.originalname));
+          fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
           const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, Date.now());
-          results.push({ filename: file.originalname, success: true, id: info.lastInsertRowid });
+          results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }
     } catch (err) {
-      results.push({ filename: file.originalname, success: false, error: err.message });
+      results.push({ filename: originalName, success: false, error: err.message });
     } finally {
       if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     }
@@ -316,7 +323,13 @@ app.get("/api/logs/download/:filename", (req, res) => {
 });
 
 app.delete("/api/logs/:id", (req, res) => {
-  db.prepare("UPDATE logs SET deleted = 1 WHERE id = ?").run(req.params.id);
+  const row = db.prepare("SELECT filename FROM logs WHERE id = ?").get(req.params.id);
+  db.prepare("DELETE FROM logs WHERE id = ?").run(req.params.id);
+  // Also delete physical file so importLogs() won't re-import on restart
+  if (row) {
+    const filePath = path.join(LOGS_DIR, row.filename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
   res.json({ success: true });
 });
 

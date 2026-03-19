@@ -45,6 +45,8 @@ export const TOOLS = [
     dev:{name:"李明華",email:"mh.li@company.com",ext:"3501"}, hasReport:true, uses:5 },
   { id:"xm-10", name:"XM Tool 10", v:"1.2.0", cat:"SW", dev_site:"XM", dev_unit:"TV", unit:"SW Q",
     dev:{name:"黃雅琪",email:"yc.huang@company.com",ext:"3502"}, hasReport:true, uses:0 },
+  { id:"xm-11", name:"电视交互自动化测试工具", v:"1.0.0", cat:"SW", dev_site:"XM", dev_unit:"TV", unit:"SW Q",
+    dev:{name:"小紅",email:"Red@company.com",ext:""}, hasReport:false, uses:0 },
   // ── FQ (10 tools) ──
   { id:"fq-1",  name:"FQ Tool 1",  v:"2.5.0", cat:"HW", dev_site:"FQ", dev_unit:"Monitor", unit:"HW Q",
     dev:{name:"吳俊傑",email:"cj.wu@company.com",ext:"4501"}, hasReport:true, uses:3 },

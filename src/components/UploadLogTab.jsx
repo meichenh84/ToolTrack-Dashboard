@@ -9,7 +9,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
   const fileRef=useRef(null);
 
   const filteredLogs=useMemo(()=>logs.filter(l=>{
-    const rm={pass:"PASS",fail:"FAIL",warning:"WARN"};
+    const rm={pass:"PASS",fail:"FAIL",warning:"WARN",stopped:"STOPPED","n/a":"N/A"};
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
@@ -55,7 +55,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
       <div className="table-controls">
         <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)}/>
-        {["ALL","PASS","FAIL","WARN"].map(f=>(
+        {["ALL","PASS","FAIL","WARN","STOPPED","N/A"].map(f=>(
           <button key={f} className={`filter-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
         ))}
       </div>

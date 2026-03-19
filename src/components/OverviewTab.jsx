@@ -8,6 +8,9 @@ export default function OverviewTab({activeTools,allLogs}){
     return `${now.getFullYear()}-${now.getMonth()+1}`;
   });
   const[matrixFilter,setMatrixFilter]=useState("ALL");
+  const[matrixSort,setMatrixSort]=useState({key:"name",dir:"asc"});
+  const handleMatrixSort=(key)=>setMatrixSort(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
+  const matrixSortIcon=(key)=>matrixSort.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{matrixSort.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
 
   // Build 12-month window ending at selectedPeriod
   const[selY,selM]=selectedPeriod.split("-").map(Number);
@@ -101,12 +104,24 @@ export default function OverviewTab({activeTools,allLogs}){
         <div className="matrix-wrap">
           <table className="usage-matrix">
             <thead><tr>
-              <th className="matrix-tool-header">工具名稱</th>
-              <th className="matrix-month-header"><div style={{lineHeight:1.6}}>總次數<br/><span style={{color:"var(--accent-teal)"}}>總時數</span></div></th>
+              <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>工具名稱{matrixSortIcon("name")}</th>
+              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer"}}><div style={{lineHeight:1.6}}>總次數{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>總時數{matrixSortIcon("totalDur")}</span></div></th>
               {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
             </tr></thead>
             <tbody>
-              {activeTools.map(tool=>{
+              {[...activeTools].sort((a,b)=>{
+                const key=matrixSort.key;
+                let av,bv;
+                if(key==="name"){av=a.name.toLowerCase();bv=b.name.toLowerCase()}
+                else{
+                  const aLogs=filteredMatrixLogs.filter(l=>l.toolId===a.id);
+                  const bLogs=filteredMatrixLogs.filter(l=>l.toolId===b.id);
+                  if(key==="totalCount"){av=aLogs.length;bv=bLogs.length}
+                  else{av=aLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);bv=bLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0)}
+                }
+                if(av<bv)return matrixSort.dir==="asc"?-1:1;
+                if(av>bv)return matrixSort.dir==="asc"?1:-1;return 0;
+              }).map(tool=>{
                 const cells=months12.map(m=>{const count=getCount(tool.id,m.year,m.month);const dur=getDur(tool.id,m.year,m.month);return{count,dur}});
                 const usedCount=cells.filter(c=>c.count>0).length;
                 return(
