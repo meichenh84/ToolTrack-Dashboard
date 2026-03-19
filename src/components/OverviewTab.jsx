@@ -18,11 +18,11 @@ export default function OverviewTab({activeTools,allLogs}){
     months12.push({year:yy,month:mm});
   }
 
-  // Dropdown options: from current month down to earliest log month
+  // Dropdown: upper bound = system time (auto-extends), lower bound = earliest log date
   const periodOptions=useMemo(()=>{
     const now=new Date();
     const curY=now.getFullYear(), curM=now.getMonth()+1;
-    // Find earliest log month
+    // Lower bound: earliest log's test date
     let startY=curY, startM=curM;
     if(allLogs.length>0){
       const earliest=allLogs.reduce((min,l)=>l.time<min?l.time:min,allLogs[0].time);
@@ -82,7 +82,7 @@ export default function OverviewTab({activeTools,allLogs}){
           </div>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>期間選擇：</span>
+              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>欄位起始期間：</span>
               <select className="year-select" value={selectedPeriod} onChange={e=>setSelectedPeriod(e.target.value)}>
                 {periodOptions.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
