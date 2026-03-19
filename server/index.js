@@ -57,10 +57,30 @@ db.exec(`
     time INTEGER,
     time_str TEXT,
     dur TEXT,
+    size INTEGER DEFAULT 0,
     uploaded_at INTEGER,
     deleted INTEGER DEFAULT 0
   );
 `);
+
+// Migration: add size column for existing databases
+try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+
+// Backfill size for existing logs that have size=0
+(()=>{
+  const rows = db.prepare("SELECT id, filename FROM logs WHERE size = 0 OR size IS NULL").all();
+  if (rows.length > 0) {
+    const update = db.prepare("UPDATE logs SET size = ? WHERE id = ?");
+    db.transaction(() => {
+      rows.forEach(r => {
+        const fp = path.join(LOGS_DIR, r.filename);
+        if (fs.existsSync(fp)) {
+          update.run(fs.statSync(fp).size, r.id);
+        }
+      });
+    })();
+  }
+})()
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Log Parser + Validation
@@ -198,17 +218,19 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
     files.forEach((filename) => {
-      const content = fs.readFileSync(path.join(LOGS_DIR, filename), "utf-8");
+      const filePath = path.join(LOGS_DIR, filename);
+      const content = fs.readFileSync(filePath, "utf-8");
       const v = validateAndParseLog(content, filename);
       if (v.ok) {
         const p = v.data;
-        const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, p.time);
+        const fileSize = fs.statSync(filePath).size;
+        const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time);
         if (info.changes > 0) imported++;
       }
     });
@@ -272,6 +294,7 @@ app.get("/api/logs", (req, res) => {
     filename: l.filename, test_site: l.test_site, test_unit: l.test_unit,
     tester: l.tester, testerEmail: l.tester_email,
     result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
+    size: l.size || 0,
     uploadedAt: l.uploaded_at, uploadedAtStr: fmtTime(l.uploaded_at),
   })));
 });
@@ -282,8 +305,8 @@ app.post("/api/logs/upload", upload.array("files"), (req, res) => {
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
     // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
@@ -303,7 +326,7 @@ app.post("/api/logs/upload", upload.array("files"), (req, res) => {
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
           fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
-          const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, Date.now());
+          const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now());
           results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }
