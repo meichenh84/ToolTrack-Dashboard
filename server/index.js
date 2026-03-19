@@ -83,8 +83,11 @@ function validateAndParseLog(text, filename) {
     return { ok: false, error: "缺少 [LOG_START] 或 [LOG_END] 標記" };
   }
 
+  // Only parse fields between [LOG_START] and [LOG_END] — content below is ignored
+  const header = text.substring(text.indexOf("[LOG_START]"), text.indexOf("[LOG_END]"));
+
   const get = (key) => {
-    const m = text.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
+    const m = header.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
     return m ? m[1].trim() : null;
   };
 

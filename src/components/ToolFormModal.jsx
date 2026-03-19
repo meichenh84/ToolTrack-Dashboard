@@ -28,7 +28,7 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               </select>
             </label>
             <label className="form-label">Team
-              <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor Team"/>
+              <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor"/>
             </label>
             <label className="form-label">Unit
               <input className="form-input" value={toolForm.unit} onChange={e=>setToolForm(p=>({...p,unit:e.target.value}))} placeholder="HW Q / SW Q"/>
