@@ -18,20 +18,20 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               <input className="form-input" value={toolForm.v} onChange={e=>setToolForm(p=>({...p,v:e.target.value}))} placeholder="1.0.0"/>
             </label>
             <label className="form-label">Type
-              <select className="form-input" value={toolForm.cat} onChange={e=>setToolForm(p=>({...p,cat:e.target.value,unit:e.target.value==="HW"?"HW Q":"SW Q"}))}>
+              <select className="form-input" value={toolForm.cat} onChange={e=>setToolForm(p=>({...p,cat:e.target.value}))}>
                 <option value="HW">HW</option><option value="SW">SW</option>
               </select>
             </label>
-            <label className="form-label">Site
+            <label className="form-label">Dev Site
               <select className="form-input" value={toolForm.dev_site} onChange={e=>setToolForm(p=>({...p,dev_site:e.target.value}))}>
                 <option value="TPE">TPE</option><option value="XM">XM</option><option value="FQ">FQ</option>
               </select>
             </label>
-            <label className="form-label">Team
+            <label className="form-label">Dev Unit
               <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor"/>
             </label>
-            <label className="form-label">Unit
-              <input className="form-input" value={toolForm.unit} onChange={e=>setToolForm(p=>({...p,unit:e.target.value}))} placeholder="HW Q / SW Q"/>
+            <label className="form-label">Finish Date
+              <input className="form-input" type="date" value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
             </label>
             <label className="form-label">Developer
               <input className="form-input" value={toolForm.devName} onChange={e=>setToolForm(p=>({...p,devName:e.target.value}))} placeholder="Name"/>

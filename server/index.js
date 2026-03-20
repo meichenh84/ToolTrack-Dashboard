@@ -35,10 +35,10 @@ db.exec(`
     cat TEXT,
     dev_site TEXT,
     dev_unit TEXT,
-    unit TEXT,
     dev_name TEXT,
     dev_email TEXT,
     dev_ext TEXT,
+    finish_date TEXT,
     has_report INTEGER DEFAULT 0,
     uses INTEGER DEFAULT 0,
     enabled INTEGER DEFAULT 1
@@ -63,8 +63,10 @@ db.exec(`
   );
 `);
 
-// Migration: add size column for existing databases
+// Migration: add columns for existing databases
 try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE tools ADD COLUMN finish_date TEXT"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE tools DROP COLUMN unit"); } catch(e) { /* column already dropped */ }
 
 // Backfill size for existing logs that have size=0
 (()=>{
@@ -80,7 +82,8 @@ try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) 
       });
     })();
   }
-})()
+})();
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Log Parser + Validation
@@ -201,12 +204,12 @@ async function seedTools() {
 
   const { TOOLS } = await import("../src/data/tools.js");
   const insert = db.prepare(
-    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, unit, dev_name, dev_email, dev_ext, has_report, uses)
+    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   db.transaction(() => {
     TOOLS.forEach((t) => {
-      insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.unit, t.dev.name, t.dev.email, t.dev.ext, t.hasReport ? 1 : 0, t.uses || 0);
+      insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, t.uses || 0);
     });
   })();
 }
@@ -247,9 +250,9 @@ app.get("/api/tools", (req, res) => {
   const rows = db.prepare("SELECT * FROM tools ORDER BY id").all();
   res.json(rows.map((t) => ({
     id: t.id, name: t.name, v: t.version, cat: t.cat,
-    dev_site: t.dev_site, dev_unit: t.dev_unit, unit: t.unit,
+    dev_site: t.dev_site, dev_unit: t.dev_unit,
     dev: { name: t.dev_name, email: t.dev_email, ext: t.dev_ext },
-    hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
+    finish_date: t.finish_date || "", hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
   })));
 });
 
@@ -257,17 +260,17 @@ app.post("/api/tools", (req, res) => {
   const t = req.body;
   const id = `custom-${Date.now()}`;
   db.prepare(
-    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, unit, dev_name, dev_email, dev_ext, has_report, uses)
+    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
-  ).run(id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.unit, t.dev.name, t.dev.email, t.dev.ext, t.hasReport ? 1 : 0);
+  ).run(id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0);
   res.json({ success: true, id });
 });
 
 app.put("/api/tools/:id", (req, res) => {
   const t = req.body;
   db.prepare(
-    `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, unit=?, dev_name=?, dev_email=?, dev_ext=?, has_report=? WHERE id=?`
-  ).run(t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.unit, t.dev.name, t.dev.email, t.dev.ext, t.hasReport ? 1 : 0, req.params.id);
+    `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, dev_name=?, dev_email=?, dev_ext=?, finish_date=?, has_report=? WHERE id=?`
+  ).run(t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, req.params.id);
   res.json({ success: true });
 });
 
@@ -360,8 +363,22 @@ app.delete("/api/logs/:id", (req, res) => {
 // Start
 // ══════════════════════════════════════════════════════════════════════════════
 
+async function backfillCloseDate() {
+  const nullRows = db.prepare("SELECT COUNT(*) as c FROM tools WHERE finish_date IS NULL").get().c;
+  if (nullRows > 0) {
+    try {
+      const { TOOLS } = await import("../src/data/tools.js");
+      const upd = db.prepare("UPDATE tools SET finish_date = ? WHERE id = ?");
+      db.transaction(() => {
+        TOOLS.forEach(t => { if (t.finish_date) upd.run(t.finish_date, t.id); });
+      })();
+    } catch(e) { /* seed file may not exist */ }
+  }
+}
+
 async function start() {
   await seedTools();
+  await backfillCloseDate();
   const imported = importLogs();
   const total = db.prepare("SELECT COUNT(*) as count FROM logs WHERE deleted = 0").get().count;
 

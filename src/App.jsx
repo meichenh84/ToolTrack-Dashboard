@@ -17,7 +17,7 @@ export default function Dashboard(){
   const[loading,setLoading]=useState(true);
   const[showToolForm,setShowToolForm]=useState(false);
   const[editingTool,setEditingTool]=useState(null);
-  const emptyForm={name:"",v:"1.0.0",cat:"HW",dev_site:"TPE",dev_unit:"",unit:"HW Q",devName:"",devEmail:"",devExt:"",hasReport:false};
+  const emptyForm={name:"",v:"1.0.0",cat:"HW",dev_site:"TPE",dev_unit:"",finish_date:"",devName:"",devEmail:"",devExt:"",hasReport:false};
   const[toolForm,setToolForm]=useState(emptyForm);
 
   // ── Clock ──
@@ -43,11 +43,12 @@ export default function Dashboard(){
   const toggleTool=async(id)=>{await fetch(`/api/tools/${id}/toggle`,{method:"PUT"});refreshTools()};
 
   const openAddTool=()=>{setEditingTool(null);setToolForm(emptyForm);setShowToolForm(true)};
-  const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,dev_site:t.dev_site,dev_unit:t.dev_unit,unit:t.unit,devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
+  const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,dev_site:t.dev_site,dev_unit:t.dev_unit,finish_date:t.finish_date?(t.finish_date.includes("/")?t.finish_date.replace(/\//g,"-"):t.finish_date):"",devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
 
   const handleSaveTool=async()=>{
     if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
-    const body={name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,unit:toolForm.unit,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport};
+    const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
+    const body={name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,finish_date:cd,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport};
     if(editingTool){
       await fetch(`/api/tools/${editingTool.id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
       setNotif(`✓ Updated: ${toolForm.name}`);
