@@ -40,7 +40,14 @@ export default function Dashboard(){
   const R=useMemo(()=>computeRankings(activeTools,logs),[activeTools,logs]);
 
   // ── Tool CRUD ──
-  const toggleTool=async(id)=>{await fetch(`/api/tools/${id}/toggle`,{method:"PUT"});refreshTools()};
+  const toggleTool=async(id)=>{
+    const tool=tools.find(t=>t.id===id);
+    if(tool&&!tool.enabled&&tool.service_end_date){
+      const today=new Date();const todayStr=`${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,"0")}/${String(today.getDate()).padStart(2,"0")}`;
+      if(tool.service_end_date!==todayStr){setNotif(`⚠ 「${tool.name}」已退役 (${tool.service_end_date})，無法重新啟用`);return;}
+    }
+    await fetch(`/api/tools/${id}/toggle`,{method:"PUT"});refreshTools();
+  };
 
   const openAddTool=()=>{setEditingTool(null);setToolForm(emptyForm);setShowToolForm(true)};
   const openEditTool=(t)=>{setEditingTool(t);setToolForm({name:t.name,v:t.v,cat:t.cat,dev_site:t.dev_site,dev_unit:t.dev_unit,finish_date:t.finish_date?(t.finish_date.includes("/")?t.finish_date.replace(/\//g,"-"):t.finish_date):"",service_end_date:t.service_end_date?(t.service_end_date.includes("/")?t.service_end_date.replace(/\//g,"-"):t.service_end_date):"",devName:t.dev.name,devEmail:t.dev.email,devExt:t.dev.ext,hasReport:t.hasReport});setShowToolForm(true)};
