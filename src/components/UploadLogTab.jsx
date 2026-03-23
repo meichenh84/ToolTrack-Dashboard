@@ -88,7 +88,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td className="mono" style={{color:"var(--text-muted)"}}>{String(i+1).padStart(3,"0")}</td>
               <td className="mono">{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
-              <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
+              <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
               <td className="mono" style={{fontSize:11}}>{fmtSize(l.size)}</td>
               <td>{l.test_site}</td>
               <td>{l.test_unit||"—"}</td>

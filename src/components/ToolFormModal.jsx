@@ -33,6 +33,9 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
             <label className="form-label">Finish Date
               <input className="form-input" type="date" value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
             </label>
+            <label className="form-label">Service End Date
+              <input className="form-input" type="date" value={toolForm.service_end_date} onChange={e=>setToolForm(p=>({...p,service_end_date:e.target.value}))}/>
+            </label>
             <label className="form-label">Developer
               <input className="form-input" value={toolForm.devName} onChange={e=>setToolForm(p=>({...p,devName:e.target.value}))} placeholder="Name"/>
             </label>

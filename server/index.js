@@ -68,6 +68,7 @@ try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) 
 try { db.exec("ALTER TABLE tools ADD COLUMN finish_date TEXT"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools DROP COLUMN unit"); } catch(e) { /* column already dropped */ }
 try { db.exec("ALTER TABLE tools ADD COLUMN sort_order INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE tools ADD COLUMN service_end_date TEXT"); } catch(e) { /* column already exists */ }
 
 // Backfill sort_order from rowid for existing tools
 (() => {
@@ -261,7 +262,7 @@ app.get("/api/tools", (req, res) => {
     id: t.id, name: t.name, v: t.version, cat: t.cat,
     dev_site: t.dev_site, dev_unit: t.dev_unit,
     dev: { name: t.dev_name, email: t.dev_email, ext: t.dev_ext },
-    finish_date: t.finish_date || "", hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
+    finish_date: t.finish_date || "", service_end_date: t.service_end_date || "", hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
     sort_order: t.sort_order,
   })));
 });
@@ -280,8 +281,8 @@ app.post("/api/tools", (req, res) => {
 app.put("/api/tools/:id", (req, res) => {
   const t = req.body;
   db.prepare(
-    `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, dev_name=?, dev_email=?, dev_ext=?, finish_date=?, has_report=? WHERE id=?`
-  ).run(t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, req.params.id);
+    `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, dev_name=?, dev_email=?, dev_ext=?, finish_date=?, service_end_date=?, has_report=? WHERE id=?`
+  ).run(t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.service_end_date || null, t.hasReport ? 1 : 0, req.params.id);
   res.json({ success: true });
 });
 
@@ -291,9 +292,16 @@ app.delete("/api/tools/:id", (req, res) => {
 });
 
 app.put("/api/tools/:id/toggle", (req, res) => {
-  db.prepare("UPDATE tools SET enabled = NOT enabled WHERE id = ?").run(req.params.id);
-  const row = db.prepare("SELECT enabled FROM tools WHERE id = ?").get(req.params.id);
-  res.json({ success: true, enabled: !!row.enabled });
+  const before = db.prepare("SELECT enabled FROM tools WHERE id = ?").get(req.params.id);
+  if (!before) return res.status(404).json({ error: "Tool not found" });
+  const nowEnabled = !before.enabled;
+  const fmtNow = () => { const d = new Date(); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`; };
+  if (nowEnabled) {
+    db.prepare("UPDATE tools SET enabled = 1, service_end_date = NULL WHERE id = ?").run(req.params.id);
+  } else {
+    db.prepare("UPDATE tools SET enabled = 0, service_end_date = ? WHERE id = ?").run(fmtNow(), req.params.id);
+  }
+  res.json({ success: true, enabled: !!nowEnabled });
 });
 
 // ── Logs ──
@@ -393,10 +401,10 @@ async function start() {
   const imported = importLogs();
   const total = db.prepare("SELECT COUNT(*) as count FROM logs WHERE deleted = 0").get().count;
 
-  app.listen(3001, () => {
+  app.listen(3001, "0.0.0.0", () => {
     console.log("──────────────────────────────────────");
     console.log("  ToolTrack API Server");
-    console.log("  http://localhost:3001");
+    console.log("  http://0.0.0.0:3001");
     console.log(`  Tools: ${db.prepare("SELECT COUNT(*) as c FROM tools").get().c}`);
     console.log(`  Logs:  ${total} (${imported} newly imported)`);
     console.log("──────────────────────────────────────");
