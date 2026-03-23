@@ -9,7 +9,7 @@ const getVal=(t,key)=>{
 
 export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,onEditTool,onDeleteTool}){
   const[dirSearch,setDirSearch]=useState("");
-  const[sortCfg,setSortCfg]=useState({key:"name",dir:"asc"});
+  const[sortCfg,setSortCfg]=useState({key:"sort_order",dir:"asc"});
 
   const filteredTools=useMemo(()=>{
     if(!dirSearch)return tools;
@@ -42,11 +42,12 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
       </div>
       <table>
         <thead><tr>
+          <th style={{width:"3%"}} className="sortable" onClick={()=>handleSort("sort_order")}>#{sortIcon("sort_order")}</th>
           <th style={{width:"5%"}}>Active</th>
-          <th style={{width:"15%"}} className="sortable" onClick={()=>handleSort("name")}>Tool Name{sortIcon("name")}</th>
+          <th style={{width:"14%"}} className="sortable" onClick={()=>handleSort("name")}>Tool Name{sortIcon("name")}</th>
           <th style={{width:"5%"}} className="sortable" onClick={()=>handleSort("cat")}>Type{sortIcon("cat")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dev_site")}>Dev Site{sortIcon("dev_site")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("dev_unit")}>Dev Unit{sortIcon("dev_unit")}</th>
+          <th style={{width:"5%"}} className="sortable" onClick={()=>handleSort("dev_site")}>Dev Site{sortIcon("dev_site")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("dev_unit")}>Dev Unit{sortIcon("dev_unit")}</th>
           <th style={{width:"6%"}}>Version</th>
           <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("finish_date")}>Finish Date{sortIcon("finish_date")}</th>
           <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("dev.name")}>Developer{sortIcon("dev.name")}</th>
@@ -59,6 +60,7 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
             const off=!t.enabled;
             return(
             <tr key={t.id} style={{opacity:off?0.4:1,transition:"opacity .2s"}}>
+              <td className="mono" style={{color:"var(--text-muted)",fontSize:11,textAlign:"center"}}>{t.sort_order}</td>
               <td><label className="toggle-switch" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={!off} onChange={()=>toggleTool(t.id)}/><span className="toggle-slider"></span></label></td>
               <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{t.name}{off&&<span className="retired-tag">已退役</span>}</td>
               <td><span className={t.cat==="HW"?"cat-hw":"cat-sw"}>{t.cat}</span></td>

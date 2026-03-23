@@ -1,9 +1,11 @@
 import { SITES } from "../data/rankings.js";
 import RankingPanel from "./RankingPanel.jsx";
+import ToolCompletionTrend from "./ToolCompletionTrend.jsx";
 
-export default function StatisticTab({activeTools,allLogs,R}){
+export default function StatisticTab({activeTools,allTools,allLogs,R}){
   return(
     <div className="rank-stack">
+      <ToolCompletionTrend tools={allTools}/>
       <div className="panel">
         <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>所有工具已被各 Site 使用總次數與總時數</div></div>
         <div className="site-columns">

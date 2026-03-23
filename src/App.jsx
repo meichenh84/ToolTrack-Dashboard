@@ -114,7 +114,7 @@ export default function Dashboard(){
 
       <main className="main">
         {tab==="overview"&&<OverviewTab activeTools={activeTools} allLogs={logs}/>}
-        {tab==="statistic"&&<StatisticTab activeTools={activeTools} allLogs={logs} R={R}/>}
+        {tab==="statistic"&&<StatisticTab activeTools={activeTools} allTools={tools} allLogs={logs} R={R}/>}
         {tab==="upload"&&<UploadLogTab logs={logs} onUpload={handleUpload} onDelete={handleDeleteLog}/>}
         {tab==="directory"&&<ToolStatusTab tools={tools} activeTools={activeTools} toggleTool={toggleTool} onAddTool={openAddTool} onEditTool={openEditTool} onDeleteTool={handleDeleteTool}/>}
       </main>

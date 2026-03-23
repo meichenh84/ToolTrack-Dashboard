@@ -8,7 +8,7 @@ export default function OverviewTab({activeTools,allLogs}){
     return `${now.getFullYear()}-${now.getMonth()+1}`;
   });
   const[matrixFilter,setMatrixFilter]=useState("ALL");
-  const[matrixSort,setMatrixSort]=useState({key:"name",dir:"asc"});
+  const[matrixSort,setMatrixSort]=useState({key:"sort_order",dir:"asc"});
   const handleMatrixSort=(key)=>setMatrixSort(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
   const matrixSortIcon=(key)=>matrixSort.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{matrixSort.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
 
@@ -104,6 +104,7 @@ export default function OverviewTab({activeTools,allLogs}){
         <div className="matrix-wrap">
           <table className="usage-matrix">
             <thead><tr>
+              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
               <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>工具名稱{matrixSortIcon("name")}</th>
               <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer"}}><div style={{lineHeight:1.6}}>總次數{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>總時數{matrixSortIcon("totalDur")}</span></div></th>
               {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
@@ -112,7 +113,8 @@ export default function OverviewTab({activeTools,allLogs}){
               {[...activeTools].sort((a,b)=>{
                 const key=matrixSort.key;
                 let av,bv;
-                if(key==="name"){av=a.name.toLowerCase();bv=b.name.toLowerCase()}
+                if(key==="sort_order"){av=a.sort_order;bv=b.sort_order}
+                else if(key==="name"){av=a.name.toLowerCase();bv=b.name.toLowerCase()}
                 else{
                   const aLogs=filteredMatrixLogs.filter(l=>l.toolId===a.id);
                   const bLogs=filteredMatrixLogs.filter(l=>l.toolId===b.id);
@@ -126,6 +128,7 @@ export default function OverviewTab({activeTools,allLogs}){
                 const usedCount=cells.filter(c=>c.count>0).length;
                 return(
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
+                    <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{tool.sort_order}</td>
                     <td className="matrix-tool-name">{tool.name}</td>
                     {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
@@ -143,6 +146,7 @@ export default function OverviewTab({activeTools,allLogs}){
                 const grandDur=filteredMatrixLogs.filter(l=>activeTools.some(t=>t.id===l.toolId)).reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
                 return(
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
+                  <td></td>
                   <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</td>
                   <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
                   {months12.map((m,i)=>{

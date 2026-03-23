@@ -67,6 +67,15 @@ db.exec(`
 try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools ADD COLUMN finish_date TEXT"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools DROP COLUMN unit"); } catch(e) { /* column already dropped */ }
+try { db.exec("ALTER TABLE tools ADD COLUMN sort_order INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+
+// Backfill sort_order from rowid for existing tools
+(() => {
+  const need = db.prepare("SELECT COUNT(*) as c FROM tools WHERE sort_order = 0 OR sort_order IS NULL").get().c;
+  if (need > 0) {
+    db.exec("UPDATE tools SET sort_order = rowid WHERE sort_order = 0 OR sort_order IS NULL");
+  }
+})();
 
 // Backfill size for existing logs that have size=0
 (()=>{
@@ -204,12 +213,12 @@ async function seedTools() {
 
   const { TOOLS } = await import("../src/data/tools.js");
   const insert = db.prepare(
-    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   db.transaction(() => {
-    TOOLS.forEach((t) => {
-      insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, t.uses || 0);
+    TOOLS.forEach((t, i) => {
+      insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, t.uses || 0, i + 1);
     });
   })();
 }
@@ -247,22 +256,24 @@ function importLogs() {
 
 // ── Tools ──
 app.get("/api/tools", (req, res) => {
-  const rows = db.prepare("SELECT * FROM tools ORDER BY id").all();
+  const rows = db.prepare("SELECT * FROM tools ORDER BY sort_order").all();
   res.json(rows.map((t) => ({
     id: t.id, name: t.name, v: t.version, cat: t.cat,
     dev_site: t.dev_site, dev_unit: t.dev_unit,
     dev: { name: t.dev_name, email: t.dev_email, ext: t.dev_ext },
     finish_date: t.finish_date || "", hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
+    sort_order: t.sort_order,
   })));
 });
 
 app.post("/api/tools", (req, res) => {
   const t = req.body;
   const id = `custom-${Date.now()}`;
+  const maxOrder = db.prepare("SELECT COALESCE(MAX(sort_order),0) as m FROM tools").get().m;
   db.prepare(
-    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
-  ).run(id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0);
+    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
+  ).run(id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, maxOrder + 1);
   res.json({ success: true, id });
 });
 
