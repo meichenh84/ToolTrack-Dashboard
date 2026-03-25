@@ -45,7 +45,43 @@ export default function ToolCompletionTrend({ tools }) {
     });
   }, [tools]);
 
-  // ── 2. Quarterly ──
+  // ── 2. Daily data ──
+  const daily = useMemo(() => {
+    if (!monthly) return null;
+    const fmtKey = d => `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+
+    const finishDates = tools.filter(t => t.finish_date?.trim()).map(t => t.finish_date);
+    const endDates = tools.filter(t => t.service_end_date?.trim()).map(t => t.service_end_date);
+    const allDates = [...finishDates, ...endDates].map(s => new Date(s.replace(/\//g, "-"))).filter(d => !isNaN(d));
+    if (!allDates.length) return null;
+
+    const minDate = new Date(Math.min(...allDates));
+    const now = new Date();
+    const maxDate = now > new Date(Math.max(...allDates)) ? now : new Date(Math.max(...allDates));
+    const start = new Date(minDate); start.setDate(start.getDate() - 1);
+
+    const addPerD = {}, retPerD = {};
+    finishDates.forEach(d => { addPerD[d] = (addPerD[d] || 0) + 1; });
+    endDates.forEach(d => { retPerD[d] = (retPerD[d] || 0) + 1; });
+
+    const days = [];
+    const cur = new Date(start);
+    let cumAll = 0, cumAct = 0, cumRet = 0;
+    while (cur <= maxDate) {
+      const key = fmtKey(cur);
+      const added = addPerD[key] || 0, removed = retPerD[key] || 0;
+      cumAll += added; cumAct += added - removed; cumRet += removed;
+      const lbl = (cur.getDate() === 1)
+        ? `${cur.getFullYear()}/${String(cur.getMonth()+1).padStart(2,"0")}/${String(cur.getDate()).padStart(2,"0")}`
+        : `${String(cur.getMonth()+1).padStart(2,"0")}/${String(cur.getDate()).padStart(2,"0")}`;
+      const full = `${cur.getFullYear()}/${String(cur.getMonth()+1).padStart(2,"0")}/${String(cur.getDate()).padStart(2,"0")}`;
+      days.push({ m: lbl, mFull: full, allCum: cumAll, allAdded: added, actCum: cumAct, actRemoved: removed, retCum: cumRet, retAdded: removed });
+      cur.setDate(cur.getDate() + 1);
+    }
+    return days;
+  }, [tools, monthly]);
+
+  // ── 3. Quarterly ──
   const quarterly = useMemo(() => {
     if (!monthly) return null;
     const map = new Map();
@@ -60,7 +96,7 @@ export default function ToolCompletionTrend({ tools }) {
     return [...map.values()];
   }, [monthly]);
 
-  // ── 3. Yearly ──
+  // ── 4. Yearly ──
   const yearly = useMemo(() => {
     if (!monthly) return null;
     const map = new Map();
@@ -77,10 +113,10 @@ export default function ToolCompletionTrend({ tools }) {
   if (!monthly) return null;
 
   // ── 4. Select data & window ──
-  const allData = mode === "year" ? yearly : mode === "quarter" ? quarterly : monthly;
+  const allData = mode === "day" ? daily : mode === "year" ? yearly : mode === "quarter" ? quarterly : monthly;
   if (!allData) return null;
   const hasRetired = monthly.at(-1).retCum > 0;
-  const WIN = mode === "month" ? 14 : mode === "quarter" ? 12 : allData.length;
+  const WIN = mode === "day" ? 45 : mode === "month" ? 14 : mode === "quarter" ? 12 : allData.length;
   const winSize = Math.min(WIN, allData.length);
   const needsNav = allData.length > winSize;
   const maxOff = Math.max(0, allData.length - winSize);
@@ -110,7 +146,7 @@ export default function ToolCompletionTrend({ tools }) {
   const lineRet = hasRetired ? mkLine("retCum") : "";
 
   const yTicks = Array.from({ length: 6 }, (_, i) => Math.round(i * nM / 5));
-  const lbl = n <= 14 ? 1 : n <= 24 ? 2 : 3;
+  const lbl = mode === "day" ? 5 : (n <= 14 ? 1 : n <= 24 ? 2 : 3);
 
   // ── 8. Hover ──
   const hp = hi !== null && hi < n ? data[hi] : null;
@@ -179,6 +215,7 @@ export default function ToolCompletionTrend({ tools }) {
           工具完成上線趨勢
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <button style={mBtn("day")} onClick={() => { setMode("day"); setViewOffset(null); setHi(null); }}>日線</button>
           <button style={mBtn("month")} onClick={() => { setMode("month"); setViewOffset(null); setHi(null); }}>月線</button>
           <button style={mBtn("quarter")} onClick={() => { setMode("quarter"); setViewOffset(null); setHi(null); }}>季線</button>
           <button style={mBtn("year")} onClick={() => { setMode("year"); setViewOffset(null); setHi(null); }}>年線</button>
@@ -218,7 +255,8 @@ export default function ToolCompletionTrend({ tools }) {
         {/* Points + X labels + hover */}
         {data.map((p, i) => (
           <g key={i}>
-            {i % lbl === 0 && <text x={sx(i)} y={chartBot + 16} textAnchor="middle" fill="#7f8c9b" fontSize="10" fontFamily="monospace">{p.m}</text>}
+            {i % lbl === 0 && <text x={sx(i)} y={chartBot + 16} textAnchor="middle" fill={mode === "day" && p.m.length > 5 ? "#00d4ff" : "#7f8c9b"} fontSize={mode === "day" ? 9 : 10} fontFamily="monospace" fontWeight={mode === "day" && p.m.length > 5 ? "bold" : "normal"}>{p.m}</text>}
+            {mode === "day" && i % lbl !== 0 && p.m.length > 5 && <text x={sx(i)} y={chartBot + 16} textAnchor="middle" fill="#00d4ff" fontSize="9" fontFamily="monospace" fontWeight="bold">{p.m}</text>}
             <rect x={sx(i) - cw / n / 2} y={chartTop} width={cw / n} height={chartH} fill="transparent" onMouseEnter={() => { if (!drag) setHi(i); }} style={{ pointerEvents: drag ? "none" : "auto", cursor: needsNav ? "grab" : "crosshair" }} />
             {p.allAdded > 0 && <circle cx={sx(i)} cy={sy(p.allCum)} r={hi === i ? 5 : 3.5} fill={hi === i ? "#55efc4" : "#00b894"} stroke="#0a1929" strokeWidth="2" />}
             {hasRetired && (p.allAdded > 0 || p.actRemoved > 0) && <circle cx={sx(i)} cy={sy(p.actCum)} r={hi === i ? 5 : 3.5} fill={hi === i ? "#74b9ff" : "#00d4ff"} stroke="#0a1929" strokeWidth="2" />}
@@ -234,7 +272,7 @@ export default function ToolCompletionTrend({ tools }) {
             {hasRetired && <circle cx={hx} cy={sy(hp.actCum)} r="4" fill="#74b9ff" stroke="#0a1929" strokeWidth="2" />}
             {hasRetired && hp.retCum > 0 && <circle cx={hx} cy={sy(hp.retCum)} r="4" fill="#e17055" stroke="#0a1929" strokeWidth="2" />}
             <rect x={tx - tipW / 2} y={tipY} width={tipW} height={tipH} rx="6" fill="#0f2030" stroke="#1e3a5f" strokeWidth="1" />
-            <text x={tx} y={tipY + 15} textAnchor="middle" fill="#00d4ff" fontSize="12" fontWeight="bold">{hp.m}</text>
+            <text x={tx} y={tipY + 15} textAnchor="middle" fill="#00d4ff" fontSize="12" fontWeight="bold">{hp.mFull || hp.m}</text>
             <text x={tx} y={tipY + 30} textAnchor="middle" fill="#00b894" fontSize="11">{`全部上線 ${hp.allCum}${hp.allAdded > 0 ? ` (+${hp.allAdded})` : ""}`}</text>
             {hasRetired && <text x={tx} y={tipY + 44} textAnchor="middle" fill="#74b9ff" fontSize="11">{`服役中 ${hp.actCum}${hp.actRemoved > 0 ? ` (-${hp.actRemoved})` : ""}`}</text>}
             {hasRetired && hp.retCum > 0 && <text x={tx} y={tipY + 58} textAnchor="middle" fill="#e17055" fontSize="11">{`已退役 ${hp.retCum}${hp.retAdded > 0 ? ` (+${hp.retAdded})` : ""}`}</text>}
