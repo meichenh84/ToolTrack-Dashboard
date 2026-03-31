@@ -212,16 +212,19 @@ async function seedTools() {
   const count = db.prepare("SELECT COUNT(*) as c FROM tools").get().c;
   if (count > 0) return;
 
-  const { TOOLS } = await import("../src/data/tools.js");
-  const insert = db.prepare(
-    `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  );
-  db.transaction(() => {
-    TOOLS.forEach((t, i) => {
-      insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, t.uses || 0, i + 1);
-    });
-  })();
+  try {
+    const { TOOLS } = await import("../src/data/tools.js");
+    if (!TOOLS || !TOOLS.length) return;
+    const insert = db.prepare(
+      `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    db.transaction(() => {
+      TOOLS.forEach((t, i) => {
+        insert.run(t.id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, t.uses || 0, i + 1);
+      });
+    })();
+  } catch(e) { /* seed file not found — clean start, tools added via UI */ }
 }
 
 function importLogs() {
@@ -287,7 +290,8 @@ app.put("/api/tools/:id", (req, res) => {
 });
 
 app.delete("/api/tools/:id", (req, res) => {
-  db.prepare("DELETE FROM tools WHERE id = ?").run(req.params.id);
+  const info = db.prepare("DELETE FROM tools WHERE id = ?").run(req.params.id);
+  if (info.changes === 0) return res.status(404).json({ error: "Tool not found" });
   res.json({ success: true });
 });
 
@@ -369,12 +373,11 @@ app.get("/api/logs/download/:filename", (req, res) => {
 
 app.delete("/api/logs/:id", (req, res) => {
   const row = db.prepare("SELECT filename FROM logs WHERE id = ?").get(req.params.id);
+  if (!row) return res.status(404).json({ error: "Log not found" });
   db.prepare("DELETE FROM logs WHERE id = ?").run(req.params.id);
   // Also delete physical file so importLogs() won't re-import on restart
-  if (row) {
-    const filePath = path.join(LOGS_DIR, row.filename);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  }
+  const filePath = path.join(LOGS_DIR, row.filename);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   res.json({ success: true });
 });
 
