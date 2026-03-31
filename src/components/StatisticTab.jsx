@@ -13,9 +13,9 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
             const toolIds=new Set(activeTools.map(t=>t.id));
             const siteLogs=allLogs.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
             const toolMap={};
-            activeTools.forEach(t=>{toolMap[t.name]={count:0,dur:0}});
-            siteLogs.forEach(l=>{if(toolMap[l.toolName]){toolMap[l.toolName].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolName].dur+=h}});
-            const data=Object.entries(toolMap).map(([name,v])=>({name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
+            activeTools.forEach(t=>{toolMap[t.id]={name:t.name,count:0,dur:0}});
+            siteLogs.forEach(l=>{if(toolMap[l.toolId]){toolMap[l.toolId].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolId].dur+=h}});
+            const data=Object.values(toolMap).map(v=>({name:v.name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
             const max=data.length>0?data[0].count:0;
             const top3=data.slice(0,3);
             const medals=["🏆","🥈","🥉"];

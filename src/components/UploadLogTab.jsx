@@ -27,7 +27,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
     return[...filteredLogs].sort((a,b)=>{
       let av=a[sortCfg.key],bv=b[sortCfg.key];
       if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
-      if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
+      if(sortCfg.key==="dur"){av=parseFloat(av)||0;bv=parseFloat(bv)||0}
+      else if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
       if(av<bv)return sortCfg.dir==="asc"?-1:1;
       if(av>bv)return sortCfg.dir==="asc"?1:-1;return 0;
     });

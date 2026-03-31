@@ -28,7 +28,7 @@ export default function OverviewTab({activeTools,allLogs}){
     // Lower bound: earliest log's test date
     let startY=curY, startM=curM;
     if(allLogs.length>0){
-      const earliest=allLogs.reduce((min,l)=>l.time<min?l.time:min,allLogs[0].time);
+      const earliest=allLogs.reduce((min,l)=>l.time<min?l.time:min,Infinity);
       const d=new Date(earliest);
       startY=d.getFullYear();
       startM=d.getMonth()+1;

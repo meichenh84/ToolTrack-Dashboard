@@ -85,10 +85,11 @@ try { db.exec("ALTER TABLE tools ADD COLUMN service_end_date TEXT"); } catch(e) 
     const update = db.prepare("UPDATE logs SET size = ? WHERE id = ?");
     db.transaction(() => {
       rows.forEach(r => {
-        const fp = path.join(LOGS_DIR, r.filename);
-        if (fs.existsSync(fp)) {
-          update.run(fs.statSync(fp).size, r.id);
-        }
+        try {
+          const fp = path.join(LOGS_DIR, r.filename);
+          const stat = fs.statSync(fp);
+          update.run(stat.size, r.id);
+        } catch(e) { /* file missing or inaccessible, skip */ }
       });
     })();
   }
@@ -166,14 +167,21 @@ function validateAndParseLog(text, filename) {
     }
   }
 
-  // Date format
-  const startDate = new Date(logStart.replace(/\//g, "-"));
-  const endDate = new Date(logEnd.replace(/\//g, "-"));
-  if (isNaN(startDate.getTime())) {
-    return { ok: false, error: `Test_Log Start 日期格式錯誤:「${logStart}」` };
+  // Date format + validate no silent correction (e.g. 02/29 on non-leap year → 03/01)
+  const parseDate = (str) => {
+    const d = new Date(str.replace(/\//g, "-"));
+    if (isNaN(d.getTime())) return null;
+    const [y, m, dd] = str.split(/[\/ ]/);
+    if (d.getFullYear() !== Number(y) || d.getMonth() + 1 !== Number(m) || d.getDate() !== Number(dd)) return null;
+    return d;
+  };
+  const startDate = parseDate(logStart);
+  const endDate = parseDate(logEnd);
+  if (!startDate) {
+    return { ok: false, error: `Test_Log Start 日期不合法:「${logStart}」` };
   }
-  if (isNaN(endDate.getTime())) {
-    return { ok: false, error: `Test_Log End 日期格式錯誤:「${logEnd}」` };
+  if (!endDate) {
+    return { ok: false, error: `Test_Log End 日期不合法:「${logEnd}」` };
   }
 
   // End must be after Start
@@ -272,20 +280,24 @@ app.get("/api/tools", (req, res) => {
 
 app.post("/api/tools", (req, res) => {
   const t = req.body;
+  if (!t || !t.name?.trim()) return res.status(400).json({ error: "Tool name is required" });
+  if (!t.dev) t.dev = {};
   const id = `custom-${Date.now()}`;
   const maxOrder = db.prepare("SELECT COALESCE(MAX(sort_order),0) as m FROM tools").get().m;
   db.prepare(
     `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
-  ).run(id, t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.hasReport ? 1 : 0, maxOrder + 1);
+  ).run(id, t.name, t.v || "", t.cat || "", t.dev_site || "", t.dev_unit || "", t.dev.name || "", t.dev.email || "", t.dev.ext || "", t.finish_date || null, t.hasReport ? 1 : 0, maxOrder + 1);
   res.json({ success: true, id });
 });
 
 app.put("/api/tools/:id", (req, res) => {
   const t = req.body;
+  if (!t || !t.name?.trim()) return res.status(400).json({ error: "Tool name is required" });
+  if (!t.dev) t.dev = {};
   db.prepare(
     `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, dev_name=?, dev_email=?, dev_ext=?, finish_date=?, service_end_date=?, has_report=? WHERE id=?`
-  ).run(t.name, t.v, t.cat, t.dev_site, t.dev_unit, t.dev.name, t.dev.email, t.dev.ext, t.finish_date || null, t.service_end_date || null, t.hasReport ? 1 : 0, req.params.id);
+  ).run(t.name, t.v || "", t.cat || "", t.dev_site || "", t.dev_unit || "", t.dev.name || "", t.dev.email || "", t.dev.ext || "", t.finish_date || null, t.service_end_date || null, t.hasReport ? 1 : 0, req.params.id);
   res.json({ success: true });
 });
 
@@ -366,9 +378,12 @@ app.post("/api/logs/upload", upload.array("files"), (req, res) => {
 });
 
 app.get("/api/logs/download/:filename", (req, res) => {
-  const filePath = path.join(LOGS_DIR, req.params.filename);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found" });
-  res.download(filePath, req.params.filename);
+  const safeName = path.basename(req.params.filename);
+  const filePath = path.join(LOGS_DIR, safeName);
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.resolve(LOGS_DIR) + path.sep)) return res.status(403).json({ error: "Access denied" });
+  if (!fs.existsSync(resolved)) return res.status(404).json({ error: "File not found" });
+  res.download(resolved, safeName);
 });
 
 app.delete("/api/logs/:id", (req, res) => {

@@ -14,13 +14,13 @@ export default function ToolCompletionTrend({ tools }) {
     const parsed = valid.map(t => {
       const d = new Date(t.finish_date.replace(/\//g, "-"));
       return { d, ym: `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}` };
-    }).filter(t => !isNaN(t.d)).sort((a, b) => a.d - b.d);
+    }).filter(t => !isNaN(t.d.getTime())).sort((a, b) => a.d - b.d);
     if (!parsed.length) return null;
 
     const retired = tools.filter(t => t.service_end_date?.trim()).map(t => {
       const d = new Date(t.service_end_date.replace(/\//g, "-"));
       return { d, ym: `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}` };
-    }).filter(t => !isNaN(t.d));
+    }).filter(t => !isNaN(t.d.getTime()));
 
     const months = [];
     const cur = new Date(parsed[0].d.getFullYear(), parsed[0].d.getMonth() - 1);
@@ -52,7 +52,7 @@ export default function ToolCompletionTrend({ tools }) {
 
     const finishDates = tools.filter(t => t.finish_date?.trim()).map(t => t.finish_date);
     const endDates = tools.filter(t => t.service_end_date?.trim()).map(t => t.service_end_date);
-    const allDates = [...finishDates, ...endDates].map(s => new Date(s.replace(/\//g, "-"))).filter(d => !isNaN(d));
+    const allDates = [...finishDates, ...endDates].map(s => new Date(s.replace(/\//g, "-"))).filter(d => !isNaN(d.getTime()));
     if (!allDates.length) return null;
 
     const minDate = new Date(Math.min(...allDates));
