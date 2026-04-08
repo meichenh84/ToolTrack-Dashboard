@@ -30,7 +30,7 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
             <label className="form-label">Dev Unit
               <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor"/>
             </label>
-            <label className="form-label">Finish Date
+            <label className="form-label">Service Start
               <input className="form-input" type="date" value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
             </label>
             <label className="form-label">Service End Date
@@ -40,10 +40,10 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               <input className="form-input" value={toolForm.devName} onChange={e=>setToolForm(p=>({...p,devName:e.target.value}))} placeholder="Name"/>
             </label>
             <label className="form-label">Email
-              <input className="form-input" value={toolForm.devEmail} onChange={e=>setToolForm(p=>({...p,devEmail:e.target.value}))} placeholder="email@company.com"/>
+              <input className="form-input" value={toolForm.devEmail} onChange={e=>setToolForm(p=>({...p,devEmail:e.target.value}))} placeholder="developer@tpv-tech.com"/>
             </label>
             <label className="form-label">Ext
-              <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="2501"/>
+              <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="82-8888"/>
             </label>
           </div>
           <div className="form-actions">

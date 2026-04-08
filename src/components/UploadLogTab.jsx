@@ -35,7 +35,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
   },[filteredLogs,sortCfg]);
 
   const handleSort=(key)=>setSortCfg(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
-  const sortIcon=(key)=>sortCfg.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{sortCfg.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
+  const sortIcon=(key)=>sortCfg.key===key?<span style={{marginLeft:2,width:0,display:"inline-block",overflow:"visible",color:"var(--accent-cyan)",fontSize:8}}>{sortCfg.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:2,width:0,display:"inline-block",overflow:"visible",opacity:.3,fontSize:8}}>↕</span>;
 
   const handleDragOver=(e)=>{e.preventDefault();setDragging(true)};
   const handleDragLeave=()=>setDragging(false);
@@ -75,9 +75,9 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
           <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
           <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("size")}>Size{sortIcon("size")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
+          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
           <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
           <th style={{width:"12%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
           <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
           <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
@@ -86,18 +86,18 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
         <tbody>
           {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
-              <td className="mono" style={{color:"var(--text-muted)"}}>{String(i+1).padStart(3,"0")}</td>
-              <td className="mono">{l.uploadedAtStr}</td>
+              <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
+              <td className="mono" style={{textAlign:"center"}}>{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
               <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
               <td className="mono" style={{fontSize:11}}>{fmtSize(l.size)}</td>
-              <td>{l.test_site}</td>
-              <td>{l.test_unit||"—"}</td>
-              <td>{l.tester}</td>
+              <td style={{textAlign:"center"}}>{l.test_site}</td>
+              <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
+              <td style={{textAlign:"center"}}>{l.tester}</td>
               <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
-              <td className="mono">{l.dur}</td>
-              <td><ResultBadge result={l.result}/></td>
-              <td><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>Delete</button></td>
+              <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
+              <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
+              <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>Delete</button></td>
             </tr>
           ))}
         </tbody>

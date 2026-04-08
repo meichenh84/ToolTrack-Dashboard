@@ -10,7 +10,7 @@ export default function OverviewTab({activeTools,allLogs}){
   const[matrixFilter,setMatrixFilter]=useState("ALL");
   const[matrixSort,setMatrixSort]=useState({key:"sort_order",dir:"asc"});
   const handleMatrixSort=(key)=>setMatrixSort(p=>({key,dir:p.key===key&&p.dir==="asc"?"desc":"asc"}));
-  const matrixSortIcon=(key)=>matrixSort.key===key?<span style={{marginLeft:4,color:"var(--accent-cyan)",fontSize:8}}>{matrixSort.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:4,opacity:.3,fontSize:8}}>↕</span>;
+  const matrixSortIcon=(key)=>matrixSort.key===key?<span style={{marginLeft:2,width:0,display:"inline-block",overflow:"visible",color:"var(--accent-cyan)",fontSize:8}}>{matrixSort.dir==="asc"?"▲":"▼"}</span>:<span style={{marginLeft:2,width:0,display:"inline-block",overflow:"visible",opacity:.3,fontSize:8}}>↕</span>;
 
   // Build 12-month window ending at selectedPeriod
   const[selY,selM]=selectedPeriod.split("-").map(Number);
@@ -106,7 +106,7 @@ export default function OverviewTab({activeTools,allLogs}){
             <thead><tr>
               <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
               <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>工具名稱{matrixSortIcon("name")}</th>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer"}}><div style={{lineHeight:1.6}}>總次數{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>總時數{matrixSortIcon("totalDur")}</span></div></th>
+              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center"}}><div style={{lineHeight:1.6}}>總次數{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>總時數{matrixSortIcon("totalDur")}</span></div></th>
               {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
             </tr></thead>
             <tbody>
