@@ -25,14 +25,14 @@ export default function Dashboard(){
   useEffect(()=>{if(notif){const id=setTimeout(()=>setNotif(null),3000);return()=>clearTimeout(id)}},[notif]);
 
   // ── Fetch from API ──
-  const refreshTools=()=>fetch("/api/tools").then(r=>r.json()).then(setTools);
-  const refreshLogs=()=>fetch("/api/logs").then(r=>r.json()).then(setLogs);
+  const refreshTools=()=>fetch("/api/tools").then(r=>r.json()).then(setTools).catch(()=>setNotif("⚠ 無法載入工具資料"));
+  const refreshLogs=()=>fetch("/api/logs").then(r=>r.json()).then(setLogs).catch(()=>setNotif("⚠ 無法載入日誌資料"));
 
   useEffect(()=>{
     Promise.all([
       fetch("/api/tools").then(r=>r.json()),
       fetch("/api/logs").then(r=>r.json()),
-    ]).then(([t,l])=>{setTools(t);setLogs(l);setLoading(false)});
+    ]).then(([t,l])=>{setTools(t);setLogs(l);setLoading(false)}).catch(()=>{setLoading(false);setNotif("⚠ 無法連線至 Server")});
   },[]);
 
   // ── Derived data ──

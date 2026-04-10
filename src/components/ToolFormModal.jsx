@@ -1,3 +1,5 @@
+import { SITES } from "../data/rankings.js";
+
 export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,onClose}){
   return(
     <div className="modal-overlay" onClick={onClose}>
@@ -24,7 +26,7 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
             </label>
             <label className="form-label">Dev Site
               <select className="form-input" value={toolForm.dev_site} onChange={e=>setToolForm(p=>({...p,dev_site:e.target.value}))}>
-                <option value="TPE">TPE</option><option value="XM">XM</option><option value="FQ">FQ</option>
+                {SITES.map(s=><option key={s} value={s}>{s}</option>)}
               </select>
             </label>
             <label className="form-label">Dev Unit

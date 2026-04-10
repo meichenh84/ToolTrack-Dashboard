@@ -142,8 +142,10 @@ export default function OverviewTab({activeTools,allLogs}){
                 );
               })}
               {(()=>{
-                const grandCount=filteredMatrixLogs.filter(l=>activeTools.some(t=>t.id===l.toolId)).length;
-                const grandDur=filteredMatrixLogs.filter(l=>activeTools.some(t=>t.id===l.toolId)).reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+                const toolIdSet=new Set(activeTools.map(t=>t.id));
+                const relevantLogs=filteredMatrixLogs.filter(l=>toolIdSet.has(l.toolId));
+                const grandCount=relevantLogs.length;
+                const grandDur=relevantLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
                 return(
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
                   <td></td>

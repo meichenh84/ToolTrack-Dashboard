@@ -2,7 +2,11 @@ import { SITES } from "../data/rankings.js";
 import RankingPanel from "./RankingPanel.jsx";
 import ToolCompletionTrend from "./ToolCompletionTrend.jsx";
 
+const MEDALS=["🏆","🥈","🥉"];
+const TIERS=["gold","silver","bronze"];
+
 export default function StatisticTab({activeTools,allTools,allLogs,R}){
+  const toolIds=new Set(activeTools.map(t=>t.id));
   return(
     <div className="rank-stack">
       <ToolCompletionTrend tools={allTools}/>
@@ -10,7 +14,6 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
         <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>所有工具已被各 Site 使用總次數與總時數</div></div>
         <div className="site-columns">
           {SITES.map(s=>{
-            const toolIds=new Set(activeTools.map(t=>t.id));
             const siteLogs=allLogs.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
             const toolMap={};
             activeTools.forEach(t=>{toolMap[t.id]={name:t.name,count:0,dur:0}});
@@ -18,8 +21,8 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
             const data=Object.values(toolMap).map(v=>({name:v.name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
             const max=data.length>0?data[0].count:0;
             const top3=data.slice(0,3);
-            const medals=["🏆","🥈","🥉"];
-            const tiers=["gold","silver","bronze"];
+            const medals=MEDALS;
+            const tiers=TIERS;
             const totalCount=data.reduce((s,d)=>s+d.count,0);
             const totalDur=data.reduce((s,d)=>s+d.dur,0);
             return(
@@ -60,7 +63,6 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
       </div>
       <RankingPanel title="工具協助 Debug 累計 Fail 數" data={R.toolFails} dotColor="var(--accent-red)" barBg="var(--accent-red)" showTotal/>
       {(()=>{
-        const toolIds=new Set(activeTools.map(t=>t.id));
         const testerMap={};
         allLogs.filter(l=>toolIds.has(l.toolId)).forEach(l=>{
           if(!testerMap[l.tester])testerMap[l.tester]={count:0,dur:0,test_site:l.test_site,test_unit:l.test_unit};
