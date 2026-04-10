@@ -414,8 +414,8 @@ async function backfillCloseDate() {
 }
 
 async function start() {
-  await seedTools();
-  await backfillCloseDate();
+  // seedTools() and backfillCloseDate() removed — production starts with empty DB
+  // Tools are added via UI, logs via upload
   const imported = importLogs();
   const total = db.prepare("SELECT COUNT(*) as count FROM logs WHERE deleted = 0").get().count;
 
