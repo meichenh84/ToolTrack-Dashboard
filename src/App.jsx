@@ -12,7 +12,7 @@ export default function Dashboard(){
   const[tab,setTab]=useState("overview");
   const[clock,setClock]=useState("00:00:00");
   const[notif,setNotif]=useState(null);
-  const[theme,setTheme]=useState(()=>localStorage.getItem("theme")||"dark");
+  const[theme,setTheme]=useState(()=>localStorage.getItem("theme")||"light");
   const[tools,setTools]=useState([]);
   const[logs,setLogs]=useState([]);
   const[loading,setLoading]=useState(true);

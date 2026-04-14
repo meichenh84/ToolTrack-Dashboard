@@ -5,8 +5,8 @@
 --glow-cyan:0 0 20px rgba(0,212,255,0.3);--header-bg:rgba(9,15,24,0.95);--grid-line:rgba(26,45,66,0.3);--grid-line-v:rgba(26,45,66,0.15)}
 html[data-theme="light"]{--bg-deep:#f0f4f8;--bg-primary:#f0f4f8;--bg-panel:#ffffff;--bg-card:#ffffff;--bg-elevated:#f5f7fa;
 --border:#d8e2ed;--border-bright:#c4d3e2;--border-dim:#e2e8f0;
---accent-cyan:#0094cc;--accent-teal:#00997a;--accent-amber:#d48806;--accent-red:#cf1322;--accent-blue:#1677ff;
---text-primary:#1a2332;--text-secondary:#4a6580;--text-muted:#8899aa;
+--accent-cyan:#0077aa;--accent-teal:#00806a;--accent-amber:#b87400;--accent-red:#cf1322;--accent-blue:#1677ff;
+--text-primary:#111111;--text-secondary:#2a3a4a;--text-muted:#556677;
 --glow-cyan:0 0 12px rgba(0,148,204,0.15);--header-bg:rgba(255,255,255,0.95);--grid-line:rgba(0,0,0,0.06);--grid-line-v:rgba(0,0,0,0.03)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg-deep);color:var(--text-primary);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;
@@ -172,6 +172,11 @@ html[data-theme="light"] .logo-icon::before{background:var(--accent-cyan)}
 .toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;bottom:2px;background:#e74c3c;border-radius:50%;transition:all .3s}
 .toggle-switch input:checked+.toggle-slider{background:rgba(0,184,148,0.3);border-color:rgba(0,184,148,0.5)}
 .toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:#00b894}
+/* Retire toggle: unchecked=green(active), checked=red(retired) */
+.retire-toggle .toggle-slider{background:rgba(0,184,148,0.3);border-color:rgba(0,184,148,0.5)}
+.retire-toggle .toggle-slider::before{background:#00b894}
+.retire-toggle input:checked+.toggle-slider{background:rgba(231,76,60,0.3);border-color:rgba(231,76,60,0.4)}
+.retire-toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:#e74c3c}
 .retired-tag{font-size:8px;padding:2px 6px;border-radius:3px;letter-spacing:1px;margin-left:8px;background:rgba(231,76,60,0.15);color:var(--accent-red);border:1px solid rgba(231,76,60,0.3)}
 
 /* ═══ CRUD Buttons ═══ */
