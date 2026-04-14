@@ -12,6 +12,7 @@ export default function Dashboard(){
   const[tab,setTab]=useState("overview");
   const[clock,setClock]=useState("00:00:00");
   const[notif,setNotif]=useState(null);
+  const[theme,setTheme]=useState(()=>localStorage.getItem("theme")||"dark");
   const[tools,setTools]=useState([]);
   const[logs,setLogs]=useState([]);
   const[loading,setLoading]=useState(true);
@@ -19,6 +20,10 @@ export default function Dashboard(){
   const[editingTool,setEditingTool]=useState(null);
   const emptyForm={name:"",v:"1.0.0",cat:"HW",dev_site:"TPE",dev_unit:"",finish_date:"",service_end_date:"",devName:"",devEmail:"",devExt:"",hasReport:false};
   const[toolForm,setToolForm]=useState(emptyForm);
+
+  // ── Theme ──
+  useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);localStorage.setItem("theme",theme)},[theme]);
+  const toggleTheme=()=>setTheme(t=>t==="dark"?"light":"dark");
 
   // ── Clock ──
   useEffect(()=>{const tick=()=>{const n=new Date();setClock([n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,"0")).join(":"))};tick();const id=setInterval(tick,1000);return()=>clearInterval(id)},[]);
@@ -106,11 +111,14 @@ export default function Dashboard(){
             <span style={{fontSize:10,color:"var(--text-muted)",letterSpacing:2,display:"block"}}>TESTING LOG DASHBOARD</span>
           </div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:24}}>
+        <div style={{display:"flex",alignItems:"center",gap:20}}>
+          <div className="theme-toggle" data-mode={theme} onClick={toggleTheme} title={theme==="dark"?"切換亮色模式":"切換暗色模式"}>
+            <div className="theme-toggle-knob">{theme==="dark"?"🌙":"☀️"}</div>
+          </div>
           <div style={{display:"flex",alignItems:"center",gap:8,fontSize:11,color:"var(--text-secondary)",letterSpacing:1}}>
             <div style={{width:8,height:8,borderRadius:"50%",background:"var(--accent-teal)",boxShadow:"0 0 8px var(--accent-teal)",animation:"pulse 2s ease-in-out infinite"}}></div>LIVE
           </div>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:13,color:"var(--text-secondary)"}}>{clock}</div>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:13,color:"var(--text-secondary)",width:90,textAlign:"right"}}>{clock}</div>
         </div>
       </header>
 
