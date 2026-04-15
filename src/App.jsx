@@ -83,13 +83,14 @@ export default function Dashboard(){
     const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
     const sed=toolForm.service_end_date?toolForm.service_end_date.replace(/-/g,"/"):"";
     const body={name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,finish_date:cd,service_end_date:sed,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport};
+    let res;
     if(editingTool){
-      await fetch(`/api/tools/${editingTool.id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-      setNotif(t("notify.toolUpdated",{name:toolForm.name}));
+      res=await fetch(`/api/tools/${editingTool.id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     }else{
-      await fetch("/api/tools",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-      setNotif(t("notify.toolAdded",{name:toolForm.name}));
+      res=await fetch("/api/tools",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     }
+    if(!res.ok){const err=await res.json().catch(()=>({}));setNotif(err.error||t("notify.toolSaveFail"));return}
+    setNotif(editingTool?t("notify.toolUpdated",{name:toolForm.name}):t("notify.toolAdded",{name:toolForm.name}));
     setShowToolForm(false);
     refreshTools();
   };

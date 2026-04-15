@@ -66,7 +66,7 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
               <td className="mono" style={{color:"var(--text-muted)",fontSize:11,textAlign:"center"}}>{tool.sort_order}</td>
               <td style={{textAlign:"center"}}><label className="toggle-switch retire-toggle" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={off} onChange={()=>toggleTool(tool.id)}/><span className="toggle-slider"></span></label></td>
               <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{tool.name}{off&&<span className="retired-tag">{t("toolStatus.retired")}</span>}</td>
-              <td style={{textAlign:"center"}}><span className={tool.cat==="HW"?"cat-hw":"cat-sw"}>{tool.cat}</span></td>
+              <td style={{textAlign:"center"}}>{tool.cat}</td>
               <td style={{fontWeight:500,textAlign:"center"}}>{tool.dev_site}</td>
               <td style={{textAlign:"center"}}>{tool.dev_unit}</td>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{tool.v}</td>

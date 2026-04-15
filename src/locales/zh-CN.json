@@ -20,6 +20,7 @@
     "uploadFail": "✗ 解析失败: {{filename}}（{{error}}）",
     "logDeleted": "✓ 已删除: {{filename}}",
     "toolLoadFail": "⚠ 无法加载工具数据",
+    "toolSaveFail": "⚠ 保存失败，请稍后再试",
     "logLoadFail": "⚠ 无法加载日志数据",
     "serverFail": "⚠ 无法连接至服务器",
     "toolRetired": "⚠「{{name}}」已退役 ({{date}})，无法重新启用",

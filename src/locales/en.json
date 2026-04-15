@@ -20,6 +20,7 @@
     "uploadFail": "✗ Parse failed: {{filename}} ({{error}})",
     "logDeleted": "✓ Deleted: {{filename}}",
     "toolLoadFail": "⚠ Failed to load tool data",
+    "toolSaveFail": "⚠ Save failed, please try again",
     "logLoadFail": "⚠ Failed to load log data",
     "serverFail": "⚠ Cannot connect to server",
     "toolRetired": "⚠ \"{{name}}\" is retired ({{date}}), cannot reactivate",

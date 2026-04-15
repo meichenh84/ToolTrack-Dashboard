@@ -54,7 +54,7 @@ const LIMITS = {
   LOG_TEST_UNIT: 50,
   LOG_MODEL_NAME: 100,
 };
-const VALID_CATS = ["HW", "SW"];
+const VALID_CATS = ["HW", "SW", "ME", "RTE", "Others"];
 const DATE_RE = /^\d{4}\/\d{2}\/\d{2}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
