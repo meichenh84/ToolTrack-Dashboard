@@ -198,6 +198,8 @@ html[data-theme="light"] .logo-icon::before{background:var(--accent-cyan)}
 .form-input{padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-primary);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s}
 .form-input:focus{border-color:var(--accent-cyan)}
 .char-hint{font-size:10px;color:var(--text-muted);text-align:right;font-family:'DM Mono',monospace;margin-top:2px}
+.hint-tip{position:relative;cursor:help;margin-left:4px;font-size:9px;border-bottom:1px dashed var(--text-muted);color:var(--text-muted);display:inline-block}
+.hint-tip-popup{position:fixed;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-secondary);padding:6px 10px;border-radius:4px;font-size:10px;white-space:pre-line;pointer-events:none;z-index:9999;min-width:180px;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 select.form-input{cursor:pointer}
 .form-checkbox-label{flex-direction:row;align-items:center;gap:8px;grid-column:span 2}
 .form-checkbox-label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent-teal);cursor:pointer}

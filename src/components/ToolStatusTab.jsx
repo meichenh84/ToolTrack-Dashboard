@@ -49,11 +49,11 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
           <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("dev_site")}>Dev Site{sortIcon("dev_site")}</th>
           <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("dev_unit")}>Dev Unit{sortIcon("dev_unit")}</th>
           <th style={{width:"6%"}}>Version</th>
-          <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("finish_date")}>Service Start{sortIcon("finish_date")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("service_end_date")}>Service End{sortIcon("service_end_date")}</th>
           <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("dev.name")}>Developer{sortIcon("dev.name")}</th>
           <th style={{width:"14%"}} className="sortable" onClick={()=>handleSort("dev.email")}>Email{sortIcon("dev.email")}</th>
           <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("dev.ext")}>Ext{sortIcon("dev.ext")}</th>
+          <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("finish_date")}>Service Start{sortIcon("finish_date")}</th>
+          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("service_end_date")}>Service End{sortIcon("service_end_date")}</th>
           <th style={{width:"10%"}}>Action</th>
         </tr></thead>
         <tbody>
@@ -68,11 +68,11 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
               <td style={{fontWeight:500,textAlign:"center"}}>{t.dev_site}</td>
               <td style={{textAlign:"center"}}>{t.dev_unit}</td>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{t.v}</td>
-              <td className="mono" style={{color:"var(--text-muted)",fontSize:11,textAlign:"center"}}>{t.finish_date||"—"}</td>
-              <td className="mono" style={{color:t.service_end_date?"var(--accent-red)":"var(--text-muted)",fontSize:11,textAlign:"center"}}>{t.service_end_date||"—"}</td>
               <td style={{color:"var(--text-primary)",textAlign:"center"}}>{t.dev.name}</td>
               <td><a href={`mailto:${t.dev.email}`} style={{color:"var(--accent-cyan)",textDecoration:"none",fontSize:11}}>{t.dev.email}</a></td>
               <td className="mono" style={{textAlign:"center"}}>{t.dev.ext}</td>
+              <td className="mono" style={{color:"var(--text-muted)",fontSize:11,textAlign:"center"}}>{t.finish_date||"—"}</td>
+              <td className="mono" style={{color:t.service_end_date?"var(--accent-red)":"var(--text-muted)",fontSize:11,textAlign:"center"}}>{t.service_end_date||"—"}</td>
               <td style={{whiteSpace:"nowrap",textAlign:"center"}}>
                 <button className="crud-btn edit-btn" onClick={()=>onEditTool(t)}>Edit</button>
                 <button className="crud-btn del-btn" onClick={()=>onDeleteTool(t)}>Delete</button>

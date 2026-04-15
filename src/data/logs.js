@@ -43,4 +43,4 @@ export const ALL_LOGS = (() => {
 
 export const ONE_MONTH_AGO = Date.now() - 30 * 24 * 3600000;
 
-export const SITES = ["TPE","XM","FQ"];
+export const SITES = ["TPE","XM","FQ","GZ","Others"];
