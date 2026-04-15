@@ -71,6 +71,8 @@ export default function Dashboard(){
     if(toolForm.devEmail.length>50){setNotif("⚠ Email 超過上限（最多 50 字元）");return}
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toolForm.devEmail)){setNotif("⚠ Email format is invalid");return}
     if(!toolForm.devExt||!toolForm.devExt.trim()){setNotif("⚠ Ext is required");return}
+    if(toolForm.devExt.length>7){setNotif("⚠ Ext 超過上限（最多 7 字元）");return}
+    if(!/^[\d]+(-[\d]+)?$/.test(toolForm.devExt)){setNotif("⚠ Ext 格式錯誤（僅限數字與一個 - 符號）");return}
     if(!toolForm.finish_date){setNotif("⚠ Service Start is required");return}
     const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
     const sed=toolForm.service_end_date?toolForm.service_end_date.replace(/-/g,"/"):"";

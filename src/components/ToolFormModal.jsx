@@ -46,9 +46,8 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <label className="form-label" style={{marginBottom:10}}>Full Name
+          <label className="form-label" style={{marginBottom:10}}><span>Full Name<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6,fontWeight:400}}>(由 Dev Site + Type + Tool Name 自動組合)</span></span>
             <input className="form-input" value={`${toolForm.dev_site}_${toolForm.cat}_${toolForm.name}`} readOnly style={{background:"var(--bg-secondary)",cursor:"default"}}/>
-            <span className="char-hint">由 Dev Site + Type + Tool Name 自動組合</span>
           </label>
           <div className="form-grid">
             <label className="form-label">Tool Name *
@@ -83,8 +82,8 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               <span className="char-hint" style={(50-(toolForm.devEmail||"").length)<=5?{color:"var(--accent-red)"}:undefined}>{(toolForm.devEmail||"").length}/50<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限英數與部分符號，不允許空格</span><HintTip text={EMAIL_TIP}/></span>
             </label>
             <label className="form-label">Ext
-              <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="82-8888" maxLength={20}/>
-              <CharHint value={toolForm.devExt} max={20}/>
+              <input className="form-input" value={toolForm.devExt} onChange={e=>{const raw=e.target.value;const digits=raw.replace(/[^\d]/g,'').slice(0,6);let v;if(digits.length>2)v=digits.slice(0,2)+'-'+digits.slice(2);else if(digits.length===2&&raw.includes('-'))v=digits+'-';else v=digits;if(v.length<=7)setToolForm(p=>({...p,devExt:v}))}} placeholder="82-8888" maxLength={7}/>
+              <span className="char-hint" style={(7-(toolForm.devExt||"").length)<=2?{color:"var(--accent-red)"}:undefined}>{(toolForm.devExt||"").length}/7<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限數字與一個 - 符號</span></span>
             </label>
             <label className="form-label">Service Start
               <DateEN value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
