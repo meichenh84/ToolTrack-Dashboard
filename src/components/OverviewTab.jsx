@@ -123,12 +123,12 @@ export default function OverviewTab({activeTools,allLogs}){
                 }
                 if(av<bv)return matrixSort.dir==="asc"?-1:1;
                 if(av>bv)return matrixSort.dir==="asc"?1:-1;return 0;
-              }).map(tool=>{
+              }).map((tool,idx)=>{
                 const cells=months12.map(m=>{const count=getCount(tool.id,m.year,m.month);const dur=getDur(tool.id,m.year,m.month);return{count,dur}});
                 const usedCount=cells.filter(c=>c.count>0).length;
                 return(
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
-                    <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{tool.sort_order}</td>
+                    <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{tool.name}</td>
                     {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
