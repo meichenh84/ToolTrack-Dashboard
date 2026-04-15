@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import CountUp from "./CountUp.jsx";
 
 export default function OverviewTab({activeTools,allLogs}){
+  const{t}=useTranslation();
   // Current month as default period
   const[selectedPeriod,setSelectedPeriod]=useState(()=>{
     const now=new Date();
@@ -65,8 +67,8 @@ export default function OverviewTab({activeTools,allLogs}){
     <>
       <div className="stats-row">
         {[
-          {label:"Total Tools",val:<><CountUp target={activeTools.length}/></>,sub:"",accent:"var(--accent-cyan)"},
-          {label:"Total Duration",val:<><CountUp target={Math.round(allLogs.reduce((sum,l)=>{const n=parseFloat(l.dur);return sum+(isNaN(n)?0:n)},0))}/><span style={{fontSize:14,fontWeight:400}}>h</span></>,sub:"All saved hours",accent:"var(--accent-teal)"},
+          {label:t("overview.totalTools"),val:<><CountUp target={activeTools.length}/></>,sub:"",accent:"var(--accent-cyan)"},
+          {label:t("overview.totalDuration"),val:<><CountUp target={Math.round(allLogs.reduce((sum,l)=>{const n=parseFloat(l.dur);return sum+(isNaN(n)?0:n)},0))}/><span style={{fontSize:14,fontWeight:400}}>h</span></>,sub:t("overview.allSavedHours"),accent:"var(--accent-teal)"},
         ].map((s,i)=>(
           <div key={i} className="stat-card" style={{"--accent-color":s.accent}}>
             <div className="stat-label">{s.label}</div>
@@ -81,17 +83,17 @@ export default function OverviewTab({activeTools,allLogs}){
         <div className="panel-header" style={{justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
           <div className="panel-title">
             <div className="panel-title-dot" style={{background:"var(--accent-cyan)",boxShadow:"0 0 6px var(--accent-cyan)"}}></div>
-            所有工具近 12 個月使用與累計總使用狀態({months12[months12.length-1].year}/{String(months12[months12.length-1].month).padStart(2,"0")} 起 ~ {months12[0].year}/{String(months12[0].month).padStart(2,"0")} 止)
+            {t("overview.matrixTitle",{start:`${months12[months12.length-1].year}/${String(months12[months12.length-1].month).padStart(2,"0")}`,end:`${months12[0].year}/${String(months12[0].month).padStart(2,"0")}`})}
           </div>
           <div style={{display:"flex",alignItems:"center",gap:16}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>欄位起始期間：</span>
+              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>{t("overview.columnStart")}</span>
               <select className="year-select" value={selectedPeriod} onChange={e=>setSelectedPeriod(e.target.value)}>
                 {periodOptions.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>資料篩選：</span>
+              <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>{t("overview.dataFilter")}</span>
               <select className="year-select" value={matrixFilter} onChange={e=>setMatrixFilter(e.target.value)}>
                 {["ALL","TPE","XM","FQ","TV","MONITOR"].map(f=><option key={f} value={f}>{f}</option>)}
               </select>
@@ -99,14 +101,14 @@ export default function OverviewTab({activeTools,allLogs}){
           </div>
         </div>
         <div className="panel-note">
-          追蹤各工具每月是否實際投入使用 — <strong>整期未使用的工具需特別關注是否落實於日常測試流程</strong>　｜　<span style={{color:"var(--accent-teal)"}}>綠色數字</span> = 該月測試次數與測試時數(即節省時數)　｜　<span style={{color:"var(--accent-red)"}}>N/A</span> = 該月無使用紀錄
+          <Trans i18nKey="overview.matrixNote" components={{s:<strong/>,g:<span style={{color:"var(--accent-teal)"}}/>,r:<span style={{color:"var(--accent-red)"}}/>}}/>
         </div>
         <div className="matrix-wrap">
           <table className="usage-matrix">
             <thead><tr>
               <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
-              <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>工具名稱{matrixSortIcon("name")}</th>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center"}}><div style={{lineHeight:1.6}}>總次數{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>總時數{matrixSortIcon("totalDur")}</span></div></th>
+              <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
+              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
               {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
             </tr></thead>
             <tbody>
@@ -131,11 +133,11 @@ export default function OverviewTab({activeTools,allLogs}){
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{tool.name}</td>
                     {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
-                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
+                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
                     )})()}
                     {cells.map((c,i)=>(
                       <td key={i} className={`matrix-cell ${c.count>0?"cell-used":"cell-unused"}`}>
-                        {c.count>0?<><div className="cell-count">{c.count} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
+                        {c.count>0?<><div className="cell-count">{c.count}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     ))}
                   </tr>
@@ -149,14 +151,14 @@ export default function OverviewTab({activeTools,allLogs}){
                 return(
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
                   <td></td>
-                  <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</td>
-                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
+                  <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>{t("overview.total")}</td>
+                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
                   {months12.map((m,i)=>{
                     const mCount=activeTools.reduce((s,t)=>s+getCount(t.id,m.year,m.month),0);
                     const mDur=activeTools.reduce((s,t)=>s+getDur(t.id,m.year,m.month),0);
                     return(
                       <td key={i} className="matrix-cell" style={{fontWeight:700}}>
-                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:15}}>{mCount} 次</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
+                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:15}}>{mCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     );
                   })}
@@ -171,8 +173,8 @@ export default function OverviewTab({activeTools,allLogs}){
           const allUnused=activeTools.length-allUsed;
           return(
             <div className="matrix-summary">
-              <div>已使用工具：<span className="used-count">{allUsed}</span></div>
-              <div>未使用工具：<span className="unused-count">{allUnused}</span></div>
+              <div>{t("overview.usedTools")}<span className="used-count">{allUsed}</span></div>
+              <div>{t("overview.unusedTools")}<span className="unused-count">{allUnused}</span></div>
             </div>
           );
         })()}

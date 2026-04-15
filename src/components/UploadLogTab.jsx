@@ -1,7 +1,9 @@
 import { useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import ResultBadge from "./ResultBadge.jsx";
 
 export default function UploadLogTab({logs,onUpload,onDelete}){
+  const{t}=useTranslation();
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("ALL");
   const[sortCfg,setSortCfg]=useState({key:"uploadedAt",dir:"desc"});
@@ -38,8 +40,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
   return(
     <div className="panel log-panel" style={{animation:"fadeIn .6s ease .2s both"}}>
       <div className="panel-header">
-        <div className="panel-title"><div className="panel-title-dot"></div> Upload Log</div>
-        <span className="panel-badge">{sortedLogs.length} records</span>
+        <div className="panel-title"><div className="panel-title-dot"></div> {t("upload.title")}</div>
+        <span className="panel-badge">{sortedLogs.length} {t("upload.records")}</span>
       </div>
 
       <div
@@ -48,14 +50,14 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
         onClick={()=>fileRef.current?.click()}
       >
         <div className="upload-icon">📂</div>
-        <div className="upload-text">Drop test log files here</div>
-        <div className="upload-sub">Supports .txt</div>
-        <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>SELECT FILES</button>
+        <div className="upload-text">{t("upload.dropHere")}</div>
+        <div className="upload-sub">{t("upload.supportsTxt")}</div>
+        <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>{t("upload.selectFiles")}</button>
       </div>
       <input type="file" ref={fileRef} multiple accept=".txt" onChange={handleFileSelect}/>
 
       <div className="table-controls">
-        <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)} maxLength={200}/>
+        <input className="search-input" placeholder={t("upload.searchPlaceholder")} value={search} onChange={e=>setSearch(e.target.value)} maxLength={200}/>
         {["ALL","PASS","FAIL","WARN","STOPPED","N/A"].map(f=>(
           <button key={f} className={`filter-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
         ))}
@@ -64,17 +66,17 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
       <table>
         <thead><tr>
           <th style={{width:"3%"}}>#</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>Upload Time{sortIcon("uploadedAt")}</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("modelName")}>Model Name{sortIcon("modelName")}</th>
-          <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
-          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
-          <th style={{width:"5%"}}>Action</th>
+          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>{t("upload.colUploadTime")}{sortIcon("uploadedAt")}</th>
+          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("toolName")}>{t("upload.colToolName")}{sortIcon("toolName")}</th>
+          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("modelName")}>{t("upload.colModelName")}{sortIcon("modelName")}</th>
+          <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>{t("upload.colLogFilename")}{sortIcon("filename")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_site")}>{t("upload.colTestSite")}{sortIcon("test_site")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>{t("upload.colTestUnit")}{sortIcon("test_unit")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("tester")}>{t("upload.colTester")}{sortIcon("tester")}</th>
+          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>{t("upload.colTesterEmail")}{sortIcon("testerEmail")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
+          <th style={{width:"5%"}}>{t("upload.colAction")}</th>
         </tr></thead>
         <tbody>
           {sortedLogs.map((l,i)=>(
@@ -90,7 +92,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
-              <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>Delete</button></td>
+              <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>{t("upload.delete")}</button></td>
             </tr>
           ))}
         </tbody>

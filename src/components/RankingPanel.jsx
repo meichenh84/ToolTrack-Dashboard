@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
+
 export default function RankingPanel({title,data,dotColor,barBg,className,note,lowThreshold,showTotal}){
+  const{t}=useTranslation();
   const dot=dotColor?{background:dotColor,boxShadow:`0 0 6px ${dotColor}`}:{};
-  if(!data.length)return<div className={`panel ${className||""}`}><div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={dot}></div>{title}</div></div><div style={{padding:20,color:"var(--text-muted)",fontSize:11}}>No data</div></div>;
+  if(!data.length)return<div className={`panel ${className||""}`}><div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={dot}></div>{title}</div></div><div style={{padding:20,color:"var(--text-muted)",fontSize:11}}>{t("ranking.noData")}</div></div>;
   const max=data[0].count;
   const top3=data.slice(0,3);
   const medals=["🏆","🥈","🥉"];
@@ -30,7 +33,7 @@ export default function RankingPanel({title,data,dotColor,barBg,className,note,l
           return(
             <div key={i} className={`tool-item ${i===0&&!isLow?"active":""} ${isLow?"low-usage":""}`}>
               <div className="tool-rank">{String(i+1).padStart(2,"0")}</div>
-              <div className="tool-name-text">{item.name}{isLow&&<span className="low-tag">⚠ UNUSED</span>}</div>
+              <div className="tool-name-text">{item.name}{isLow&&<span className="low-tag">{t("ranking.unused")}</span>}</div>
               <div className="tool-bar-wrap"><div className="tool-bar" style={{width:`${max>0?(item.count/max*100).toFixed(0):0}%`,background:isLow?"var(--accent-red)":barBg||undefined}}></div></div>
               <div className="tool-tests" style={{color:isLow?"var(--accent-red)":barBg?barBg:undefined}}>{item.count}</div>
             </div>
@@ -38,7 +41,7 @@ export default function RankingPanel({title,data,dotColor,barBg,className,note,l
         })}
         {showTotal&&<div className="tool-item" style={{borderTop:"2px solid var(--border-bright)",background:"rgba(0,212,255,0.04)",borderRadius:"0 0 8px 8px"}}>
           <div className="tool-rank"></div>
-          <div className="tool-name-text" style={{fontWeight:700,color:"var(--accent-cyan)"}}>合計</div>
+          <div className="tool-name-text" style={{fontWeight:700,color:"var(--accent-cyan)"}}>{t("ranking.total")}</div>
           <div className="tool-bar-wrap"></div>
           <div className="tool-tests" style={{fontWeight:700,color:dotColor||"var(--accent-cyan)",fontSize:13}}>{data.reduce((s,d)=>s+d.count,0)}</div>
         </div>}

@@ -1,6 +1,8 @@
 import { useMemo, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ToolCompletionTrend({ tools }) {
+  const { t } = useTranslation();
   const [hi, setHi] = useState(null);
   const [mode, setMode] = useState("month");
   const [viewOffset, setViewOffset] = useState(null);
@@ -212,17 +214,17 @@ export default function ToolCompletionTrend({ tools }) {
       <div className="panel-header" style={{ flexWrap: "wrap", gap: 10 }}>
         <div className="panel-title">
           <div className="panel-title-dot" style={{ background: "#00d4ff", boxShadow: "0 0 6px #00d4ff" }} />
-          工具完成上線趨勢
+          {t("trend.title")}
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-          <button style={mBtn("day")} onClick={() => { setMode("day"); setViewOffset(null); setHi(null); }}>日線</button>
-          <button style={mBtn("month")} onClick={() => { setMode("month"); setViewOffset(null); setHi(null); }}>月線</button>
-          <button style={mBtn("quarter")} onClick={() => { setMode("quarter"); setViewOffset(null); setHi(null); }}>季線</button>
-          <button style={mBtn("year")} onClick={() => { setMode("year"); setViewOffset(null); setHi(null); }}>年線</button>
+          <button style={mBtn("day")} onClick={() => { setMode("day"); setViewOffset(null); setHi(null); }}>{t("trend.day")}</button>
+          <button style={mBtn("month")} onClick={() => { setMode("month"); setViewOffset(null); setHi(null); }}>{t("trend.month")}</button>
+          <button style={mBtn("quarter")} onClick={() => { setMode("quarter"); setViewOffset(null); setHi(null); }}>{t("trend.quarter")}</button>
+          <button style={mBtn("year")} onClick={() => { setMode("year"); setViewOffset(null); setHi(null); }}>{t("trend.year")}</button>
           <span style={{ width: 1, height: 16, background: "#2a3a4a", margin: "0 4px" }} />
-          <span className="panel-badge">{maxY} completed</span>
-          {hasRetired && <span className="panel-badge" style={{ borderColor: "#00d4ff", color: "#00d4ff" }}>{activeNow} active</span>}
-          {hasRetired && <span className="panel-badge" style={{ borderColor: "#e17055", color: "#e17055" }}>{retiredNow} retired</span>}
+          <span className="panel-badge">{maxY} {t("trend.completed")}</span>
+          {hasRetired && <span className="panel-badge" style={{ borderColor: "#00d4ff", color: "#00d4ff" }}>{activeNow} {t("trend.active")}</span>}
+          {hasRetired && <span className="panel-badge" style={{ borderColor: "#e17055", color: "#e17055" }}>{retiredNow} {t("trend.retired")}</span>}
         </div>
       </div>
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", display: "block", userSelect: "none" }}
@@ -273,9 +275,9 @@ export default function ToolCompletionTrend({ tools }) {
             {hasRetired && hp.retCum > 0 && <circle cx={hx} cy={sy(hp.retCum)} r="4" fill="#e17055" stroke="#0a1929" strokeWidth="2" />}
             <rect x={tx - tipW / 2} y={tipY} width={tipW} height={tipH} rx="6" fill="#0f2030" stroke="#1e3a5f" strokeWidth="1" />
             <text x={tx} y={tipY + 15} textAnchor="middle" fill="#00d4ff" fontSize="12" fontWeight="bold">{hp.mFull || hp.m}</text>
-            <text x={tx} y={tipY + 30} textAnchor="middle" fill="#00b894" fontSize="11">{`全部上線 ${hp.allCum}${hp.allAdded > 0 ? ` (+${hp.allAdded})` : ""}`}</text>
-            {hasRetired && <text x={tx} y={tipY + 44} textAnchor="middle" fill="#74b9ff" fontSize="11">{`服役中 ${hp.actCum}${hp.actRemoved > 0 ? ` (-${hp.actRemoved})` : ""}`}</text>}
-            {hasRetired && hp.retCum > 0 && <text x={tx} y={tipY + 58} textAnchor="middle" fill="#e17055" fontSize="11">{`已退役 ${hp.retCum}${hp.retAdded > 0 ? ` (+${hp.retAdded})` : ""}`}</text>}
+            <text x={tx} y={tipY + 30} textAnchor="middle" fill="#00b894" fontSize="11">{`${t("trend.tipAll",{count:hp.allCum})}${hp.allAdded > 0 ? ` (+${hp.allAdded})` : ""}`}</text>
+            {hasRetired && <text x={tx} y={tipY + 44} textAnchor="middle" fill="#74b9ff" fontSize="11">{`${t("trend.tipActive",{count:hp.actCum})}${hp.actRemoved > 0 ? ` (-${hp.actRemoved})` : ""}`}</text>}
+            {hasRetired && hp.retCum > 0 && <text x={tx} y={tipY + 58} textAnchor="middle" fill="#e17055" fontSize="11">{`${t("trend.tipRetired",{count:hp.retCum})}${hp.retAdded > 0 ? ` (+${hp.retAdded})` : ""}`}</text>}
           </g>
         )}
 
@@ -294,12 +296,12 @@ export default function ToolCompletionTrend({ tools }) {
         {/* Legend */}
         <g transform={`translate(${W / 2}, ${legendY})`}>
           <line x1="-150" y1="0" x2="-132" y2="0" stroke="#00b894" strokeWidth="2.5" />
-          <text x="-128" y="4" fill="#7f8c9b" fontSize="10">全部上線累計</text>
+          <text x="-128" y="4" fill="#7f8c9b" fontSize="10">{t("trend.legendAll")}</text>
           {hasRetired && <>
             <line x1="-40" y1="0" x2="-22" y2="0" stroke="#00d4ff" strokeWidth="2" />
-            <text x="-18" y="4" fill="#7f8c9b" fontSize="10">扣除退役</text>
+            <text x="-18" y="4" fill="#7f8c9b" fontSize="10">{t("trend.legendActive")}</text>
             <line x1="50" y1="0" x2="68" y2="0" stroke="#e17055" strokeWidth="2" />
-            <text x="72" y="4" fill="#7f8c9b" fontSize="10">退役累計</text>
+            <text x="72" y="4" fill="#7f8c9b" fontSize="10">{t("trend.legendRetired")}</text>
           </>}
         </g>
       </svg>
