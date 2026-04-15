@@ -31,8 +31,18 @@ const upload = multer({ dest: UPLOADS_TMP, limits: { fileSize: MAX_FILE_SIZE, fi
 
 // ── Constants & Input Limits ──
 const VALID_SITES = ["TPE", "XM", "FQ"];
+function getVisualWidth(str) {
+  let w = 0;
+  for (const ch of str) {
+    const c = ch.codePointAt(0);
+    if ((c>=0x4E00&&c<=0x9FFF)||(c>=0x3400&&c<=0x4DBF)||(c>=0xF900&&c<=0xFAFF)||(c>=0xFF01&&c<=0xFF60)||(c>=0xFFE0&&c<=0xFFE6)||(c>=0x3000&&c<=0x303F)||(c>=0x3040&&c<=0x309F)||(c>=0x30A0&&c<=0x30FF)||(c>=0xAC00&&c<=0xD7AF)||(c>=0x20000&&c<=0x2A6DF)) w+=2; else w+=1;
+  }
+  return w;
+}
+
 const LIMITS = {
-  TOOL_NAME: 100,
+  TOOL_NAME_MAX: 50,
+  TOOL_NAME_VISUAL: 30,
   VERSION: 30,
   DEV_UNIT: 50,
   DEV_NAME: 50,
@@ -51,7 +61,8 @@ function truncate(str, max) { return typeof str === "string" ? str.slice(0, max)
 
 function validateToolBody(t) {
   if (!t || !t.name?.trim()) return "Tool name is required";
-  if (t.name.trim().length > LIMITS.TOOL_NAME) return `Tool name must be ≤ ${LIMITS.TOOL_NAME} characters`;
+  if (t.name.trim().length > LIMITS.TOOL_NAME_MAX) return `Tool name must be ≤ ${LIMITS.TOOL_NAME_MAX} characters`;
+  if (getVisualWidth(t.name.trim()) > LIMITS.TOOL_NAME_VISUAL) return `Tool name exceeds display limit (${LIMITS.TOOL_NAME_VISUAL} visual units; CJK = 2, ASCII = 1)`;
   if (t.v && t.v.length > LIMITS.VERSION) return `Version must be ≤ ${LIMITS.VERSION} characters`;
   if (t.cat && !VALID_CATS.includes(t.cat)) return `Type must be one of: ${VALID_CATS.join(", ")}`;
   if (t.dev_site && !VALID_SITES.includes(t.dev_site)) return `Dev Site must be one of: ${VALID_SITES.join(", ")}`;
@@ -192,7 +203,8 @@ function validateAndParseLog(text, filename) {
   }
 
   // ── Layer 2.5: Field length limits ──
-  if (toolName && toolName.length > LIMITS.TOOL_NAME) return { ok: false, error: `Tool 名稱超過 ${LIMITS.TOOL_NAME} 字元上限` };
+  if (toolName && toolName.length > LIMITS.TOOL_NAME_MAX) return { ok: false, error: `Tool 名稱超過 ${LIMITS.TOOL_NAME_MAX} 字元上限` };
+  if (toolName && getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool 名稱超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
   if (tester && tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
   if (testerEmail !== "—" && testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
   if (testUnit && testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };

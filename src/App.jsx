@@ -5,7 +5,7 @@ import OverviewTab from "./components/OverviewTab.jsx";
 import StatisticTab from "./components/StatisticTab.jsx";
 import UploadLogTab from "./components/UploadLogTab.jsx";
 import ToolStatusTab from "./components/ToolStatusTab.jsx";
-import ToolFormModal from "./components/ToolFormModal.jsx";
+import ToolFormModal, { getVisualWidth } from "./components/ToolFormModal.jsx";
 import NotificationToast from "./components/NotificationToast.jsx";
 
 export default function Dashboard(){
@@ -59,7 +59,8 @@ export default function Dashboard(){
 
   const handleSaveTool=async()=>{
     if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
-    if(toolForm.name.trim().length>100){setNotif("⚠ Tool Name must be ≤ 100 characters");return}
+    if(toolForm.name.trim().length>50){setNotif("⚠ Tool Name must be ≤ 50 characters");return}
+    if(getVisualWidth(toolForm.name.trim())>30){setNotif("⚠ Tool Name 超過顯示寬度上限 (30 單位；中文=2, 英文=1)");return}
     if(toolForm.devEmail&&toolForm.devEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toolForm.devEmail)){setNotif("⚠ Email format is invalid");return}
     const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
     const sed=toolForm.service_end_date?toolForm.service_end_date.replace(/-/g,"/"):"";
