@@ -62,7 +62,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
       <input type="file" ref={fileRef} multiple accept=".txt" onChange={handleFileSelect}/>
 
       <div className="table-controls">
-        <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)} maxLength={200}/>
         {["ALL","PASS","FAIL","WARN","STOPPED","N/A"].map(f=>(
           <button key={f} className={`filter-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
         ))}

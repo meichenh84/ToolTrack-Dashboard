@@ -37,7 +37,7 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
         <span className="panel-badge">{activeTools.length}/{tools.length} active</span>
       </div>
       <div className="table-controls">
-        <input className="search-input" placeholder="Search tool, site, team, developer..." value={dirSearch} onChange={e=>setDirSearch(e.target.value)}/>
+        <input className="search-input" placeholder="Search tool, site, team, developer..." value={dirSearch} onChange={e=>setDirSearch(e.target.value)} maxLength={200}/>
         <button className="crud-btn add-btn" onClick={onAddTool}>+ ADD TOOL</button>
       </div>
       <table>

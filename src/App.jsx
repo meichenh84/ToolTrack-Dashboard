@@ -59,6 +59,8 @@ export default function Dashboard(){
 
   const handleSaveTool=async()=>{
     if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
+    if(toolForm.name.trim().length>100){setNotif("⚠ Tool Name must be ≤ 100 characters");return}
+    if(toolForm.devEmail&&toolForm.devEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toolForm.devEmail)){setNotif("⚠ Email format is invalid");return}
     const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
     const sed=toolForm.service_end_date?toolForm.service_end_date.replace(/-/g,"/"):"";
     const body={name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,finish_date:cd,service_end_date:sed,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport};
@@ -81,7 +83,12 @@ export default function Dashboard(){
   };
 
   // ── Log operations ──
+  const MAX_UPLOAD_SIZE=5*1024*1024; // 5 MB
+  const MAX_UPLOAD_COUNT=20;
   const handleUpload=async(files)=>{
+    if(files.length>MAX_UPLOAD_COUNT){setNotif(`⚠ 一次最多上傳 ${MAX_UPLOAD_COUNT} 個檔案`);return}
+    const oversized=files.filter(f=>f.size>MAX_UPLOAD_SIZE);
+    if(oversized.length){setNotif(`⚠ 檔案過大（>5MB）: ${oversized.map(f=>f.name).join(", ")}`);return}
     const fd=new FormData();
     files.forEach(f=>fd.append("files",f));
     const res=await fetch("/api/logs/upload",{method:"POST",body:fd});

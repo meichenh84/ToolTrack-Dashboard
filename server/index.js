@@ -2,6 +2,7 @@ import express from "express";
 import Database from "better-sqlite3";
 import cors from "cors";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -16,9 +17,55 @@ const UPLOADS_TMP = path.join(__dirname, "uploads");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
-const upload = multer({ dest: UPLOADS_TMP });
+// ── Rate Limiting ──
+const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, message: { error: "Too many requests, please try again later" } });
+const uploadLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, message: { error: "Too many upload requests, please try again later" } });
+app.use("/api/", apiLimiter);
+
+// ── Multer with limits ──
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB per file
+const MAX_FILE_COUNT = 20;
+const upload = multer({ dest: UPLOADS_TMP, limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_COUNT, fieldSize: 1024 * 1024 } });
+
+// ── Constants & Input Limits ──
+const VALID_SITES = ["TPE", "XM", "FQ"];
+const LIMITS = {
+  TOOL_NAME: 100,
+  VERSION: 30,
+  DEV_UNIT: 50,
+  DEV_NAME: 50,
+  DEV_EMAIL: 100,
+  DEV_EXT: 20,
+  FILENAME: 255,
+  LOG_TESTER: 50,
+  LOG_TESTER_EMAIL: 100,
+  LOG_TEST_UNIT: 50,
+};
+const VALID_CATS = ["HW", "SW"];
+const DATE_RE = /^\d{4}\/\d{2}\/\d{2}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function truncate(str, max) { return typeof str === "string" ? str.slice(0, max) : str; }
+
+function validateToolBody(t) {
+  if (!t || !t.name?.trim()) return "Tool name is required";
+  if (t.name.trim().length > LIMITS.TOOL_NAME) return `Tool name must be ≤ ${LIMITS.TOOL_NAME} characters`;
+  if (t.v && t.v.length > LIMITS.VERSION) return `Version must be ≤ ${LIMITS.VERSION} characters`;
+  if (t.cat && !VALID_CATS.includes(t.cat)) return `Type must be one of: ${VALID_CATS.join(", ")}`;
+  if (t.dev_site && !VALID_SITES.includes(t.dev_site)) return `Dev Site must be one of: ${VALID_SITES.join(", ")}`;
+  if (t.dev_unit && t.dev_unit.length > LIMITS.DEV_UNIT) return `Dev Unit must be ≤ ${LIMITS.DEV_UNIT} characters`;
+  if (t.dev) {
+    if (t.dev.name && t.dev.name.length > LIMITS.DEV_NAME) return `Developer name must be ≤ ${LIMITS.DEV_NAME} characters`;
+    if (t.dev.email && t.dev.email.length > LIMITS.DEV_EMAIL) return `Email must be ≤ ${LIMITS.DEV_EMAIL} characters`;
+    if (t.dev.email && t.dev.email.trim() && !EMAIL_RE.test(t.dev.email)) return "Email format is invalid";
+    if (t.dev.ext && t.dev.ext.length > LIMITS.DEV_EXT) return `Ext must be ≤ ${LIMITS.DEV_EXT} characters`;
+  }
+  if (t.finish_date && !DATE_RE.test(t.finish_date)) return "Service Start date format must be YYYY/MM/DD";
+  if (t.service_end_date && !DATE_RE.test(t.service_end_date)) return "Service End date format must be YYYY/MM/DD";
+  return null;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SQLite Setup
@@ -100,7 +147,6 @@ try { db.exec("ALTER TABLE tools ADD COLUMN service_end_date TEXT"); } catch(e) 
 // Log Parser + Validation
 // ══════════════════════════════════════════════════════════════════════════════
 
-const VALID_SITES = ["TPE", "XM", "FQ"];
 const VALID_RESULTS = { PASS: "pass", FAIL: "fail", WARNING: "warning", WARN: "warning", STOPPED: "stopped", "N/A": "n/a" };
 
 const fmtDate = (d) =>
@@ -144,6 +190,13 @@ function validateAndParseLog(text, filename) {
   if (missing.length > 0) {
     return { ok: false, error: `缺少必填欄位: ${missing.join("、")}` };
   }
+
+  // ── Layer 2.5: Field length limits ──
+  if (toolName && toolName.length > LIMITS.TOOL_NAME) return { ok: false, error: `Tool 名稱超過 ${LIMITS.TOOL_NAME} 字元上限` };
+  if (tester && tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
+  if (testerEmail !== "—" && testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
+  if (testUnit && testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
+  if (filename.length > LIMITS.FILENAME) return { ok: false, error: `檔名超過 ${LIMITS.FILENAME} 字元上限` };
 
   // ── Layer 3: Data ──
 
@@ -280,24 +333,26 @@ app.get("/api/tools", (req, res) => {
 
 app.post("/api/tools", (req, res) => {
   const t = req.body;
-  if (!t || !t.name?.trim()) return res.status(400).json({ error: "Tool name is required" });
   if (!t.dev) t.dev = {};
+  const err = validateToolBody(t);
+  if (err) return res.status(400).json({ error: err });
   const id = `custom-${Date.now()}`;
   const maxOrder = db.prepare("SELECT COALESCE(MAX(sort_order),0) as m FROM tools").get().m;
   db.prepare(
     `INSERT INTO tools (id, name, version, cat, dev_site, dev_unit, dev_name, dev_email, dev_ext, finish_date, has_report, uses, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
-  ).run(id, t.name, t.v || "", t.cat || "", t.dev_site || "", t.dev_unit || "", t.dev.name || "", t.dev.email || "", t.dev.ext || "", t.finish_date || null, t.hasReport ? 1 : 0, maxOrder + 1);
+  ).run(id, t.name.trim(), truncate(t.v, LIMITS.VERSION) || "", t.cat || "", t.dev_site || "", truncate(t.dev_unit, LIMITS.DEV_UNIT) || "", truncate(t.dev.name, LIMITS.DEV_NAME) || "", truncate(t.dev.email, LIMITS.DEV_EMAIL) || "", truncate(t.dev.ext, LIMITS.DEV_EXT) || "", t.finish_date || null, t.hasReport ? 1 : 0, maxOrder + 1);
   res.json({ success: true, id });
 });
 
 app.put("/api/tools/:id", (req, res) => {
   const t = req.body;
-  if (!t || !t.name?.trim()) return res.status(400).json({ error: "Tool name is required" });
   if (!t.dev) t.dev = {};
+  const err = validateToolBody(t);
+  if (err) return res.status(400).json({ error: err });
   db.prepare(
     `UPDATE tools SET name=?, version=?, cat=?, dev_site=?, dev_unit=?, dev_name=?, dev_email=?, dev_ext=?, finish_date=?, service_end_date=?, has_report=? WHERE id=?`
-  ).run(t.name, t.v || "", t.cat || "", t.dev_site || "", t.dev_unit || "", t.dev.name || "", t.dev.email || "", t.dev.ext || "", t.finish_date || null, t.service_end_date || null, t.hasReport ? 1 : 0, req.params.id);
+  ).run(t.name.trim(), truncate(t.v, LIMITS.VERSION) || "", t.cat || "", t.dev_site || "", truncate(t.dev_unit, LIMITS.DEV_UNIT) || "", truncate(t.dev.name, LIMITS.DEV_NAME) || "", truncate(t.dev.email, LIMITS.DEV_EMAIL) || "", truncate(t.dev.ext, LIMITS.DEV_EXT) || "", t.finish_date || null, t.service_end_date || null, t.hasReport ? 1 : 0, req.params.id);
   res.json({ success: true });
 });
 
@@ -337,7 +392,7 @@ app.get("/api/logs", (req, res) => {
   })));
 });
 
-app.post("/api/logs/upload", upload.array("files"), (req, res) => {
+app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: "No files uploaded" });
   }
