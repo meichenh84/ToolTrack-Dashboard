@@ -1,13 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import ResultBadge from "./ResultBadge.jsx";
 
-const fmtSize=(bytes)=>{
-  if(!bytes)return"—";
-  if(bytes<1024)return`${bytes} B`;
-  if(bytes<1048576)return`${(bytes/1024).toFixed(1)} KB`;
-  return`${(bytes/1048576).toFixed(1)} MB`;
-};
-
 export default function UploadLogTab({logs,onUpload,onDelete}){
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("ALL");
@@ -20,7 +13,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
-    return l.filename.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.test_site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
+    return l.filename.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||(l.modelName||"").toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.test_site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
   }),[logs,filter,search]);
 
   const sortedLogs=useMemo(()=>{
@@ -70,15 +63,15 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
       <table>
         <thead><tr>
-          <th style={{width:"4%"}}>#</th>
+          <th style={{width:"3%"}}>#</th>
           <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>Upload Time{sortIcon("uploadedAt")}</th>
-          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
+          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
+          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("modelName")}>Model Name{sortIcon("modelName")}</th>
           <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("size")}>Size{sortIcon("size")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
           <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
-          <th style={{width:"12%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
+          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
+          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
           <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
           <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
           <th style={{width:"5%"}}>Action</th>
@@ -89,8 +82,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
               <td className="mono" style={{textAlign:"center"}}>{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
+              <td>{l.modelName||"—"}</td>
               <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
-              <td className="mono" style={{fontSize:11}}>{fmtSize(l.size)}</td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
               <td style={{textAlign:"center"}}>{l.tester}</td>

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT } from "../src/data/tools.js";
+import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT, DUT_MODELS_MONITOR, DUT_MODELS_TV } from "../src/data/tools.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOGS_DIR = path.join(__dirname, "..", "logs");
@@ -151,13 +151,10 @@ const SW_STEPS = [
   },
 ];
 
-const DUT_MODELS_MONITOR = ["M27-QHD Pro","M32-4K Ultra","M24-FHD Eco","M34-UWQHD","M27-FHD Basic","M32-QHD Gaming"];
-const DUT_MODELS_TV = ["TV55-OLED-A1","TV65-QLED-S2","TV43-LED-E1","TV75-MiniLED-X1","TV50-LCD-V2","TV55-QLED-S1"];
+// DUT_MODELS_MONITOR and DUT_MODELS_TV imported from tools.js
 
-function generateDetailedLog(tool, result, startDate, endDate, idx) {
+function generateDetailedLog(tool, result, startDate, endDate, idx, modelName) {
   const isHW = tool.cat === "HW";
-  const isMonitor = tool.dev_unit === "Monitor Team";
-  const models = isMonitor ? DUT_MODELS_MONITOR : DUT_MODELS_TV;
   const steps = isHW ? HW_STEPS : SW_STEPS;
   const durMin = (endDate - startDate) / 60000;
 
@@ -186,11 +183,11 @@ function generateDetailedLog(tool, result, startDate, endDate, idx) {
   if (isHW) {
     lines.push(`[${ts(startDate, t)}] Connecting to DUT (Device Under Test)...`);
     t += 0.5;
-    lines.push(`[${ts(startDate, t)}] DUT identified: ${models[idx % models.length]}, S/N: ${tool.dev_site}-${String(startDate.getFullYear()).slice(2)}${String(startDate.getMonth()+1).padStart(2,"0")}-${String(idx+1).padStart(4,"0")}`);
+    lines.push(`[${ts(startDate, t)}] DUT identified: ${modelName}, S/N: ${tool.dev_site}-${String(startDate.getFullYear()).slice(2)}${String(startDate.getMonth()+1).padStart(2,"0")}-${String(idx+1).padStart(4,"0")}`);
   } else {
     lines.push(`[${ts(startDate, t)}] Launching test environment...`);
     t += 0.5;
-    lines.push(`[${ts(startDate, t)}] Target device: ${models[idx % models.length]}, FW v${((idx*3+1)%9)+1}.${(idx*7)%10}.${idx%5} (Build ${20250100 + (idx % 300)})`);
+    lines.push(`[${ts(startDate, t)}] Target device: ${modelName}, FW v${((idx*3+1)%9)+1}.${(idx*7)%10}.${idx%5} (Build ${20250100 + (idx % 300)})`);
   }
   t += 0.5;
   lines.push(`[${ts(startDate, t)}] Test session ID: ${tool.dev_site}-${tool.id.toUpperCase()}-${String(idx+1).padStart(5,"0")}`);
@@ -251,6 +248,8 @@ TOOLS.forEach((tool) => {
       Object.entries(months).forEach(([month, count]) => {
         for (let j = 0; j < count; j++) {
           const testerObj = SITE_TESTERS[site][idx % SITE_TESTERS[site].length];
+          const models = testerObj.test_unit === "Monitor" ? DUT_MODELS_MONITOR : DUT_MODELS_TV;
+          const modelName = models[idx % models.length];
           let day = 3 + ((idx * 7 + j * 11) % 25);
           const hour = 8 + ((idx * 3) % 10);
           const min = (idx * 17) % 60;
@@ -266,6 +265,7 @@ TOOLS.forEach((tool) => {
 
           let content = "[LOG_START]\n";
           content += `Tool: ${tool.name}\n`;
+          content += `Model Name: ${modelName}\n`;
           content += `Test Site: ${site}\n`;
           content += `Test Unit: ${testerObj.test_unit}\n`;
           content += `Tester: ${testerObj.name}\n`;
@@ -276,7 +276,7 @@ TOOLS.forEach((tool) => {
           content += `Test_Log Start: ${fmt(startDate)}\n`;
           content += `Test_Log End: ${fmt(endDate)}\n`;
           content += "[LOG_END]\n";
-          content += generateDetailedLog(tool, result, startDate, endDate, idx);
+          content += generateDetailedLog(tool, result, startDate, endDate, idx, modelName);
 
           fs.writeFileSync(path.join(LOGS_DIR, filename), content, "utf-8");
           fileCount++;

@@ -52,6 +52,7 @@ const LIMITS = {
   LOG_TESTER: 50,
   LOG_TESTER_EMAIL: 100,
   LOG_TEST_UNIT: 50,
+  LOG_MODEL_NAME: 100,
 };
 const VALID_CATS = ["HW", "SW"];
 const DATE_RE = /^\d{4}\/\d{2}\/\d{2}$/;
@@ -105,6 +106,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tool_id TEXT,
     tool_name TEXT,
+    model_name TEXT,
     cat TEXT,
     filename TEXT UNIQUE,
     test_site TEXT,
@@ -122,6 +124,7 @@ db.exec(`
 `);
 
 // Migration: add columns for existing databases
+try { db.exec("ALTER TABLE logs ADD COLUMN model_name TEXT"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE logs ADD COLUMN size INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools ADD COLUMN finish_date TEXT"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools DROP COLUMN unit"); } catch(e) { /* column already dropped */ }
@@ -183,6 +186,7 @@ function validateAndParseLog(text, filename) {
   };
 
   const toolName = get("Tool");
+  const modelName = get("Model Name") || "—";
   const site = get("Test Site");
   const tester = get("Tester");
   const testerEmail = get("Tester Email") || "—";
@@ -208,6 +212,7 @@ function validateAndParseLog(text, filename) {
   if (tester && tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
   if (testerEmail !== "—" && testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
   if (testUnit && testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
+  if (modelName !== "—" && modelName.length > LIMITS.LOG_MODEL_NAME) return { ok: false, error: `Model Name 超過 ${LIMITS.LOG_MODEL_NAME} 字元上限` };
   if (filename.length > LIMITS.FILENAME) return { ok: false, error: `檔名超過 ${LIMITS.FILENAME} 字元上限` };
 
   // ── Layer 3: Data ──
@@ -261,6 +266,7 @@ function validateAndParseLog(text, filename) {
     data: {
       tool_id: toolRow.id,
       tool_name: toolName,
+      model_name: modelName,
       cat: toolRow.cat,
       filename,
       test_site: site,
@@ -307,8 +313,8 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
@@ -319,7 +325,7 @@ function importLogs() {
       if (v.ok) {
         const p = v.data;
         const fileSize = fs.statSync(filePath).size;
-        const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time);
+        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time);
         if (info.changes > 0) imported++;
       }
     });
@@ -395,7 +401,7 @@ app.get("/api/logs", (req, res) => {
     return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
   };
   res.json(rows.map((l) => ({
-    id: l.id, toolId: l.tool_id, toolName: l.tool_name, cat: l.cat,
+    id: l.id, toolId: l.tool_id, toolName: l.tool_name, modelName: l.model_name || "—", cat: l.cat,
     filename: l.filename, test_site: l.test_site, test_unit: l.test_unit,
     tester: l.tester, testerEmail: l.tester_email,
     result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
@@ -410,8 +416,8 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
     // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
@@ -431,7 +437,7 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
           fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
-          const info = insert.run(p.tool_id, p.tool_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now());
+          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now());
           results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }

@@ -1,4 +1,4 @@
-import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT } from "./tools.js";
+import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT, DUT_MODELS_MONITOR, DUT_MODELS_TV } from "./tools.js";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // GENERATE LOGS from blueprint (single source of truth)
@@ -15,6 +15,7 @@ export const ALL_LOGS = (() => {
         Object.entries(months).forEach(([month, count]) => {
           for (let j = 0; j < count; j++) {
             const testerObj = SITE_TESTERS[site][idx % SITE_TESTERS[site].length];
+            const models = testerObj.test_unit === "Monitor" ? DUT_MODELS_MONITOR : DUT_MODELS_TV;
             const day = 3 + ((idx * 7 + j * 11) % 25);
             const hour = 8 + (idx * 3) % 10;
             const min = (idx * 17) % 60;
@@ -23,6 +24,7 @@ export const ALL_LOGS = (() => {
               toolId: tool.id, toolName: tool.name, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
               test_site: site, test_unit: testerObj.test_unit,
+              modelName: models[idx % models.length],
               testItem: "—",
               tester: testerObj.name,
               time: d.getTime(),
