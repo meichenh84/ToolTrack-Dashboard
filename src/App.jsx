@@ -18,7 +18,8 @@ export default function Dashboard(){
   const[loading,setLoading]=useState(true);
   const[showToolForm,setShowToolForm]=useState(false);
   const[editingTool,setEditingTool]=useState(null);
-  const emptyForm={name:"",v:"1.0.0",cat:"HW",dev_site:"TPE",dev_unit:"",finish_date:"",service_end_date:"",devName:"",devEmail:"",devExt:"",hasReport:false};
+  const today=()=>new Date().toISOString().slice(0,10);
+  const emptyForm={name:"",v:"01.00",cat:"HW",dev_site:"TPE",dev_unit:"Monitor",finish_date:today(),service_end_date:"",devName:"",devEmail:"",devExt:"",hasReport:false};
   const[toolForm,setToolForm]=useState(emptyForm);
 
   // ── Theme ──
@@ -59,9 +60,18 @@ export default function Dashboard(){
 
   const handleSaveTool=async()=>{
     if(!toolForm.name.trim()){setNotif("⚠ Tool Name is required");return}
-    if(toolForm.name.trim().length>50){setNotif("⚠ Tool Name must be ≤ 50 characters");return}
-    if(getVisualWidth(toolForm.name.trim())>30){setNotif("⚠ Tool Name 超過顯示寬度上限 (30 單位；中文=2, 英文=1)");return}
-    if(toolForm.devEmail&&toolForm.devEmail.trim()&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toolForm.devEmail)){setNotif("⚠ Email format is invalid");return}
+    if(/\s/.test(toolForm.name)){setNotif("⚠ Tool Name 不允許空格");return}
+    if(/[<>&"'`]/.test(toolForm.name)){setNotif("⚠ Tool Name 含有不允許的符號（< > & \" ' `）");return}
+    if(getVisualWidth(toolForm.name.trim())>30){setNotif("⚠ Tool Name 超過上限（最多30字元，中文佔2、英文與半形符號佔1）");return}
+    if(!toolForm.v||!/^\d{2}\.\d{2}$/.test(toolForm.v)){setNotif("⚠ Version is required（格式 00.00~99.99）");return}
+    if(!toolForm.devName||!toolForm.devName.trim()){setNotif("⚠ Developer is required");return}
+    if(/[<>&"'`]/.test(toolForm.devName)){setNotif("⚠ Developer 含有不允許的符號（< > & \" ' `）");return}
+    if(getVisualWidth(toolForm.devName)>30){setNotif("⚠ Developer 超過上限（最多30字元，中文佔2、英文與半形符號佔1）");return}
+    if(!toolForm.devEmail||!toolForm.devEmail.trim()){setNotif("⚠ Email is required");return}
+    if(toolForm.devEmail.length>50){setNotif("⚠ Email 超過上限（最多 50 字元）");return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toolForm.devEmail)){setNotif("⚠ Email format is invalid");return}
+    if(!toolForm.devExt||!toolForm.devExt.trim()){setNotif("⚠ Ext is required");return}
+    if(!toolForm.finish_date){setNotif("⚠ Service Start is required");return}
     const cd=toolForm.finish_date?toolForm.finish_date.replace(/-/g,"/"):"";
     const sed=toolForm.service_end_date?toolForm.service_end_date.replace(/-/g,"/"):"";
     const body={name:toolForm.name.trim(),v:toolForm.v,cat:toolForm.cat,dev_site:toolForm.dev_site,dev_unit:toolForm.dev_unit,finish_date:cd,service_end_date:sed,dev:{name:toolForm.devName,email:toolForm.devEmail,ext:toolForm.devExt},hasReport:toolForm.hasReport};

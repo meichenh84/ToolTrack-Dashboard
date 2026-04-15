@@ -1,4 +1,4 @@
-export const SITES = ["TPE","XM","FQ"];
+export const SITES = ["TPE","XM","FQ","GZ","Others"];
 export const ONE_MONTH_AGO = Date.now() - 30 * 24 * 3600000;
 
 export function rank(arr, key, filterFn = () => true) {

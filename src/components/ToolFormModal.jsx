@@ -1,5 +1,17 @@
-import { useRef } from "react";
+import { useRef, useState, useCallback } from "react";
 import { SITES } from "../data/rankings.js";
+
+const BLOCKED_RE=/[<>&"'`\s]/g;
+const HOVER_TIP='中文字佔2，英文與半形符號佔1\n以下符號不可使用： < > & " \' `';
+const EMAIL_RE=/[^a-zA-Z0-9@._-]/g;
+const EMAIL_TIP='預設帶入 @tpv-tech.com\n允許符號： @  .  _  -\n其餘特殊符號與空格皆不可使用';
+
+const HintTip=({text})=>{
+  const[pos,setPos]=useState(null);
+  const show=useCallback(e=>{const r=e.currentTarget.getBoundingClientRect();setPos({left:r.left+r.width/2,top:r.top-8})},[]);
+  const hide=useCallback(()=>setPos(null),[]);
+  return<><span className="hint-tip" onMouseEnter={show} onMouseLeave={hide}>(?)</span>{pos&&<div className="hint-tip-popup" style={{left:pos.left,top:pos.top,transform:"translateX(-50%) translateY(-100%)"}}>{text}</div>}</>;
+};
 
 export function getVisualWidth(str){
   let w=0;
@@ -12,20 +24,14 @@ const CharHint=({value="",max})=>{
   return <span className="char-hint" style={left<=Math.ceil(max*0.1)?{color:"var(--accent-red)"}:undefined}>{left}/{max}</span>;
 };
 
-const DateEN=({value,onChange})=>{
+const DateEN=({value,onChange,disabled})=>{
   const ref=useRef();
   return(
-    <div style={{position:"relative",width:"100%"}}>
-      <input className="form-input" type="text" readOnly value={value||""} placeholder="YYYY-MM-DD" onClick={()=>ref.current?.showPicker?.()} style={{width:"100%",cursor:"pointer",boxSizing:"border-box"}}/>
-      <input ref={ref} type="date" value={value||""} onChange={onChange} tabIndex={-1} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",opacity:0,pointerEvents:"none"}}/>
+    <div style={{position:"relative",width:"100%",opacity:disabled?.4:1}}>
+      <input className="form-input" type="text" readOnly value={value||""} placeholder="YYYY-MM-DD" onClick={()=>!disabled&&ref.current?.showPicker?.()} style={{width:"100%",cursor:disabled?"not-allowed":"pointer",boxSizing:"border-box",background:disabled?"var(--bg-secondary)":undefined}}/>
+      <input ref={ref} type="date" value={value||""} onChange={onChange} tabIndex={-1} disabled={disabled} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",opacity:0,pointerEvents:"none"}}/>
     </div>
   );
-};
-
-const VisualWidthHint=({value="",maxVisual=30})=>{
-  const vw=getVisualWidth(value||"");
-  const left=maxVisual-vw;
-  return <span className="char-hint" style={left<=Math.ceil(maxVisual*0.1)?{color:"var(--accent-red)"}:undefined}>{vw}/{maxVisual}</span>;
 };
 
 export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,onClose}){
@@ -42,19 +48,20 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
         <div className="modal-body">
           <label className="form-label" style={{marginBottom:10}}>Full Name
             <input className="form-input" value={`${toolForm.dev_site}_${toolForm.cat}_${toolForm.name}`} readOnly style={{background:"var(--bg-secondary)",cursor:"default"}}/>
+            <span className="char-hint">由 Dev Site + Type + Tool Name 自動組合</span>
           </label>
           <div className="form-grid">
             <label className="form-label">Tool Name *
-              <input className="form-input" value={toolForm.name} onChange={e=>setToolForm(p=>({...p,name:e.target.value}))} placeholder="e.g. TPE Tool 11" maxLength={50} required/>
-              <VisualWidthHint value={toolForm.name} maxVisual={30}/>
+              <input className="form-input" value={toolForm.name} onChange={e=>{const v=e.target.value.replace(BLOCKED_RE,'');if(getVisualWidth(v)<=30)setToolForm(p=>({...p,name:v}))}} placeholder="Auto_Run_Test_Tool" maxLength={30} required/>
+              <span className="char-hint" style={(30-getVisualWidth(toolForm.name))<=3?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.name)}/30<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限中、英、符號，不允許空格</span><HintTip text={HOVER_TIP}/></span>
             </label>
             <label className="form-label">Version
-              <input className="form-input" value={toolForm.v} onChange={e=>setToolForm(p=>({...p,v:e.target.value}))} placeholder="1.0.0" maxLength={30}/>
-              <CharHint value={toolForm.v} max={30}/>
+              <input className="form-input" value={toolForm.v} onChange={e=>{const raw=e.target.value;const digits=raw.replace(/[^\d]/g,'').slice(0,4);let v;if(digits.length>2)v=digits.slice(0,2)+'.'+digits.slice(2);else if(digits.length===2&&raw.includes('.'))v=digits+'.';else v=digits;setToolForm(p=>({...p,v}))}} placeholder="01.00" maxLength={5}/>
+              <span className="char-hint">格式：00.00~99.99</span>
             </label>
             <label className="form-label">Type
               <select className="form-input" value={toolForm.cat} onChange={e=>setToolForm(p=>({...p,cat:e.target.value}))}>
-                <option value="HW">HW</option><option value="SW">SW</option>
+                <option value="HW">HW</option><option value="SW">SW</option><option value="ME">ME</option><option value="RTE">RTE</option><option value="Others">Others</option>
               </select>
             </label>
             <label className="form-label">Dev Site
@@ -63,26 +70,27 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               </select>
             </label>
             <label className="form-label">Dev Unit
-              <input className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))} placeholder="e.g. Monitor" maxLength={50}/>
-              <CharHint value={toolForm.dev_unit} max={50}/>
+              <select className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))}>
+                <option value="Monitor">Monitor</option><option value="TV">TV</option><option value="PD">PD</option><option value="Others">Others</option>
+              </select>
+            </label>
+            <label className="form-label">Developer
+              <input className="form-input" value={toolForm.devName} onChange={e=>{const v=e.target.value.replace(/[<>&"'`]/g,'');if(getVisualWidth(v)<=30)setToolForm(p=>({...p,devName:v}))}} placeholder="Name" maxLength={30}/>
+              <span className="char-hint" style={(30-getVisualWidth(toolForm.devName))<=3?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.devName)}/30<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限中、英、符號</span><HintTip text={HOVER_TIP}/></span>
+            </label>
+            <label className="form-label">Email
+              <input className="form-input" value={toolForm.devEmail} onChange={e=>{const v=e.target.value.replace(EMAIL_RE,'');if(v.length<=50)setToolForm(p=>({...p,devEmail:v}))}} onFocus={e=>{if(!toolForm.devEmail){setToolForm(p=>({...p,devEmail:"@tpv-tech.com"}));setTimeout(()=>{e.target.setSelectionRange(0,0)},0)}}} placeholder="developer_name@tpv-tech.com" maxLength={50}/>
+              <span className="char-hint" style={(50-(toolForm.devEmail||"").length)<=5?{color:"var(--accent-red)"}:undefined}>{(toolForm.devEmail||"").length}/50<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限英數與部分符號，不允許空格</span><HintTip text={EMAIL_TIP}/></span>
+            </label>
+            <label className="form-label">Ext
+              <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="82-8888" maxLength={20}/>
+              <CharHint value={toolForm.devExt} max={20}/>
             </label>
             <label className="form-label">Service Start
               <DateEN value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
             </label>
             <label className="form-label">Service End Date
-              <DateEN value={toolForm.service_end_date} onChange={e=>setToolForm(p=>({...p,service_end_date:e.target.value}))}/>
-            </label>
-            <label className="form-label">Developer
-              <input className="form-input" value={toolForm.devName} onChange={e=>setToolForm(p=>({...p,devName:e.target.value}))} placeholder="Name" maxLength={50}/>
-              <CharHint value={toolForm.devName} max={50}/>
-            </label>
-            <label className="form-label">Email
-              <input className="form-input" type="email" value={toolForm.devEmail} onChange={e=>setToolForm(p=>({...p,devEmail:e.target.value}))} placeholder="developer@tpv-tech.com" maxLength={100}/>
-              <CharHint value={toolForm.devEmail} max={100}/>
-            </label>
-            <label className="form-label">Ext
-              <input className="form-input" value={toolForm.devExt} onChange={e=>setToolForm(p=>({...p,devExt:e.target.value}))} placeholder="82-8888" maxLength={20}/>
-              <CharHint value={toolForm.devExt} max={20}/>
+              <DateEN value={toolForm.service_end_date} onChange={e=>setToolForm(p=>({...p,service_end_date:e.target.value}))} disabled={!editingTool}/>
             </label>
           </div>
           <div className="form-actions">
