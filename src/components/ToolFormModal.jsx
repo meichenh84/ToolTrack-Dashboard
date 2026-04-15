@@ -54,38 +54,38 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               <input className="form-input" value={toolForm.name} onChange={e=>{const v=e.target.value.replace(BLOCKED_RE,'');if(getVisualWidth(v)<=30)setToolForm(p=>({...p,name:v}))}} placeholder="Auto_Run_Test_Tool" maxLength={30} required/>
               <span className="char-hint" style={(30-getVisualWidth(toolForm.name))<=3?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.name)}/30<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限中、英、符號，不允許空格</span><HintTip text={HOVER_TIP}/></span>
             </label>
-            <label className="form-label">Version
+            <label className="form-label">Version *
               <input className="form-input" value={toolForm.v} onChange={e=>{const raw=e.target.value;const digits=raw.replace(/[^\d]/g,'').slice(0,4);let v;if(digits.length>2)v=digits.slice(0,2)+'.'+digits.slice(2);else if(digits.length===2&&raw.includes('.'))v=digits+'.';else v=digits;setToolForm(p=>({...p,v}))}} placeholder="01.00" maxLength={5}/>
               <span className="char-hint">格式：00.00~99.99</span>
             </label>
-            <label className="form-label">Type
+            <label className="form-label">Type *
               <select className="form-input" value={toolForm.cat} onChange={e=>setToolForm(p=>({...p,cat:e.target.value}))}>
                 <option value="HW">HW</option><option value="SW">SW</option><option value="ME">ME</option><option value="RTE">RTE</option><option value="Others">Others</option>
               </select>
             </label>
-            <label className="form-label">Dev Site
+            <label className="form-label">Dev Site *
               <select className="form-input" value={toolForm.dev_site} onChange={e=>setToolForm(p=>({...p,dev_site:e.target.value}))}>
                 {SITES.map(s=><option key={s} value={s}>{s}</option>)}
               </select>
             </label>
-            <label className="form-label">Dev Unit
+            <label className="form-label">Dev Unit *
               <select className="form-input" value={toolForm.dev_unit} onChange={e=>setToolForm(p=>({...p,dev_unit:e.target.value}))}>
                 <option value="Monitor">Monitor</option><option value="TV">TV</option><option value="PD">PD</option><option value="Others">Others</option>
               </select>
             </label>
-            <label className="form-label">Developer
+            <label className="form-label">Developer *
               <input className="form-input" value={toolForm.devName} onChange={e=>{const v=e.target.value.replace(/[<>&"'`]/g,'');if(getVisualWidth(v)<=30)setToolForm(p=>({...p,devName:v}))}} placeholder="Name" maxLength={30}/>
               <span className="char-hint" style={(30-getVisualWidth(toolForm.devName))<=3?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.devName)}/30<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限中、英、符號</span><HintTip text={HOVER_TIP}/></span>
             </label>
-            <label className="form-label">Email
+            <label className="form-label">Email *
               <input className="form-input" value={toolForm.devEmail} onChange={e=>{const v=e.target.value.replace(EMAIL_RE,'');if(v.length<=50)setToolForm(p=>({...p,devEmail:v}))}} onFocus={e=>{if(!toolForm.devEmail){setToolForm(p=>({...p,devEmail:"@tpv-tech.com"}));setTimeout(()=>{e.target.setSelectionRange(0,0)},0)}}} placeholder="developer_name@tpv-tech.com" maxLength={50}/>
               <span className="char-hint" style={(50-(toolForm.devEmail||"").length)<=5?{color:"var(--accent-red)"}:undefined}>{(toolForm.devEmail||"").length}/50<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限英數與部分符號，不允許空格</span><HintTip text={EMAIL_TIP}/></span>
             </label>
-            <label className="form-label">Ext
+            <label className="form-label">Ext *
               <input className="form-input" value={toolForm.devExt} onChange={e=>{const raw=e.target.value;const digits=raw.replace(/[^\d]/g,'').slice(0,6);let v;if(digits.length>2)v=digits.slice(0,2)+'-'+digits.slice(2);else if(digits.length===2&&raw.includes('-'))v=digits+'-';else v=digits;if(v.length<=7)setToolForm(p=>({...p,devExt:v}))}} placeholder="82-8888" maxLength={7}/>
-              <span className="char-hint" style={(7-(toolForm.devExt||"").length)<=2?{color:"var(--accent-red)"}:undefined}>{(toolForm.devExt||"").length}/7<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>僅限數字與一個 - 符號</span></span>
+              <span className="char-hint" style={(7-(toolForm.devExt||"").length)<=2?{color:"var(--accent-red)"}:undefined}>{(toolForm.devExt||"").length}/7<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>格式：XX-XXXX（6位數字+1個 -）</span></span>
             </label>
-            <label className="form-label">Service Start
+            <label className="form-label">Service Start *
               <DateEN value={toolForm.finish_date} onChange={e=>setToolForm(p=>({...p,finish_date:e.target.value}))}/>
             </label>
             <label className="form-label">Service End Date
