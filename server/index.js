@@ -30,7 +30,7 @@ const MAX_FILE_COUNT = 20;
 const upload = multer({ dest: UPLOADS_TMP, limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_COUNT, fieldSize: 1024 * 1024 } });
 
 // ── Constants & Input Limits ──
-const VALID_SITES = ["TPE", "XM", "FQ"];
+const VALID_SITES = ["TPE", "XM", "FQ", "GZ", "Others"];
 function getVisualWidth(str) {
   let w = 0;
   for (const ch of str) {
