@@ -1,4 +1,4 @@
-import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT } from "./tools.js";
+import { TOOLS, SITE_TESTERS, RES_PAT, LOG_BLUEPRINT, DUT_MODELS_MONITOR, DUT_MODELS_TV } from "./tools.js";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // GENERATE LOGS from blueprint (single source of truth)
@@ -15,20 +15,27 @@ export const ALL_LOGS = (() => {
         Object.entries(months).forEach(([month, count]) => {
           for (let j = 0; j < count; j++) {
             const testerObj = SITE_TESTERS[site][idx % SITE_TESTERS[site].length];
+            const models = testerObj.test_unit === "Monitor" ? DUT_MODELS_MONITOR : DUT_MODELS_TV;
             const day = 3 + ((idx * 7 + j * 11) % 25);
             const hour = 8 + (idx * 3) % 10;
             const min = (idx * 17) % 60;
             const d = new Date(+year, +month - 1, day, hour, min);
+            const result = tool.hasReport && pat ? pat[idx % pat.length] : null;
+            const totalCount = 15 + (idx % 16);
+            const failCount = result === "fail" ? 1 + (idx % 5) : 0;
+            const passCount = totalCount - failCount;
             logs.push({
-              toolId: tool.id, toolName: tool.name, cat: tool.cat,
+              toolId: tool.id, toolName: `${tool.dev_site}_${tool.cat}_${tool.name}`, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
               test_site: site, test_unit: testerObj.test_unit,
+              modelName: models[idx % models.length],
               testItem: "—",
               tester: testerObj.name,
               time: d.getTime(),
               timeStr: `${year}/${String(+month).padStart(2,"0")}/${String(day).padStart(2,"0")} ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}`,
-              result: tool.hasReport && pat ? pat[idx % pat.length] : null,
+              result,
               dur: tool.hasReport ? `${((idx*7+3)%50/10+1).toFixed(1)}h` : "—",
+              failCount, passCount, totalCount,
             });
             idx++;
           }
@@ -41,4 +48,4 @@ export const ALL_LOGS = (() => {
 
 export const ONE_MONTH_AGO = Date.now() - 30 * 24 * 3600000;
 
-export const SITES = ["TPE","XM","FQ"];
+export const SITES = ["TPE","XM","FQ","GZ","Others"];

@@ -1,14 +1,9 @@
 import { useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import ResultBadge from "./ResultBadge.jsx";
 
-const fmtSize=(bytes)=>{
-  if(!bytes)return"—";
-  if(bytes<1024)return`${bytes} B`;
-  if(bytes<1048576)return`${(bytes/1024).toFixed(1)} KB`;
-  return`${(bytes/1048576).toFixed(1)} MB`;
-};
-
 export default function UploadLogTab({logs,onUpload,onDelete}){
+  const{t}=useTranslation();
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("ALL");
   const[sortCfg,setSortCfg]=useState({key:"uploadedAt",dir:"desc"});
@@ -20,12 +15,14 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
     if(filter!=="ALL"&&(l.result?rm[l.result]:null)!==filter)return false;
     if(!search)return true;
     const q=search.toLowerCase();
-    return l.filename.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.test_site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
+    return l.filename.toLowerCase().includes(q)||l.toolName.toLowerCase().includes(q)||(l.modelName||"").toLowerCase().includes(q)||l.tester.toLowerCase().includes(q)||l.test_site.toLowerCase().includes(q)||(l.testerEmail||"").toLowerCase().includes(q);
   }),[logs,filter,search]);
 
   const sortedLogs=useMemo(()=>{
     return[...filteredLogs].sort((a,b)=>{
-      let av=a[sortCfg.key],bv=b[sortCfg.key];
+      let av,bv;
+      if(sortCfg.key==="failRate"){av=a.totalCount>0?a.failCount/a.totalCount:0;bv=b.totalCount>0?b.failCount/b.totalCount:0}
+      else{av=a[sortCfg.key];bv=b[sortCfg.key]}
       if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
       if(sortCfg.key==="dur"){av=parseFloat(av)||0;bv=parseFloat(bv)||0}
       else if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
@@ -45,8 +42,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
   return(
     <div className="panel log-panel" style={{animation:"fadeIn .6s ease .2s both"}}>
       <div className="panel-header">
-        <div className="panel-title"><div className="panel-title-dot"></div> Upload Log</div>
-        <span className="panel-badge">{sortedLogs.length} records</span>
+        <div className="panel-title"><div className="panel-title-dot"></div> {t("upload.title")}</div>
+        <span className="panel-badge">{sortedLogs.length} {t("upload.records")}</span>
       </div>
 
       <div
@@ -55,14 +52,14 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
         onClick={()=>fileRef.current?.click()}
       >
         <div className="upload-icon">📂</div>
-        <div className="upload-text">Drop test log files here</div>
-        <div className="upload-sub">Supports .txt</div>
-        <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>SELECT FILES</button>
+        <div className="upload-text">{t("upload.dropHere")}</div>
+        <div className="upload-sub">{t("upload.supportsTxt")}</div>
+        <button className="upload-btn" onClick={(e)=>{e.stopPropagation();fileRef.current?.click()}}>{t("upload.selectFiles")}</button>
       </div>
       <input type="file" ref={fileRef} multiple accept=".txt" onChange={handleFileSelect}/>
 
       <div className="table-controls">
-        <input className="search-input" placeholder="Search tool, filename, tester, site..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <input className="search-input" placeholder={t("upload.searchPlaceholder")} value={search} onChange={e=>setSearch(e.target.value)} maxLength={200}/>
         {["ALL","PASS","FAIL","WARN","STOPPED","N/A"].map(f=>(
           <button key={f} className={`filter-btn ${filter===f?"active":""}`} onClick={()=>setFilter(f)}>{f}</button>
         ))}
@@ -70,34 +67,38 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
       <table>
         <thead><tr>
-          <th style={{width:"4%"}}>#</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>Upload Time{sortIcon("uploadedAt")}</th>
-          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("toolName")}>Tool Name{sortIcon("toolName")}</th>
-          <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>Log Filename{sortIcon("filename")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("size")}>Size{sortIcon("size")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("test_site")}>Test Site{sortIcon("test_site")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>Test Unit{sortIcon("test_unit")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("tester")}>Tester{sortIcon("tester")}</th>
-          <th style={{width:"12%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>Tester Email{sortIcon("testerEmail")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>Duration{sortIcon("dur")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>Result{sortIcon("result")}</th>
-          <th style={{width:"5%"}}>Action</th>
+          <th>#</th>
+          <th className="sortable" onClick={()=>handleSort("toolName")}>{t("upload.colToolName")}{sortIcon("toolName")}</th>
+          <th className="sortable" onClick={()=>handleSort("modelName")}>{t("upload.colModelName")}{sortIcon("modelName")}</th>
+          <th className="sortable" onClick={()=>handleSort("test_site")}>{t("upload.colTestSite")}{sortIcon("test_site")}</th>
+          <th className="sortable" onClick={()=>handleSort("test_unit")}>{t("upload.colTestUnit")}{sortIcon("test_unit")}</th>
+          <th className="sortable" onClick={()=>handleSort("tester")}>{t("upload.colTester")}{sortIcon("tester")}</th>
+          <th className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
+          <th className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
+          <th className="sortable" onClick={()=>handleSort("failCount")}>{t("upload.colFailCases")}{sortIcon("failCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("passCount")}>{t("upload.colPassCases")}{sortIcon("passCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("totalCount")}>{t("upload.colTotalCases")}{sortIcon("totalCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("failRate")}>{t("upload.colFailRate")}{sortIcon("failRate")}</th>
+          <th>{t("upload.colDownload")}</th>
+          <th>{t("upload.colAction")}</th>
         </tr></thead>
         <tbody>
           {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
-              <td className="mono" style={{textAlign:"center"}}>{l.uploadedAtStr}</td>
-              <td>{l.toolName}</td>
-              <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
-              <td className="mono" style={{fontSize:11}}>{fmtSize(l.size)}</td>
+              <td style={{minWidth:160,whiteSpace:"nowrap"}}>{l.toolName}</td>
+              <td style={{minWidth:180,whiteSpace:"nowrap"}}>{l.modelName||"—"}</td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
-              <td style={{textAlign:"center"}}>{l.tester}</td>
-              <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
+              <td style={{textAlign:"center"}}><span className="dl-tip" data-tip={l.testerEmail||"—"} style={{cursor:"default",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</span></td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
-              <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>Delete</button></td>
+              <td className="mono" style={{textAlign:"center"}}>{l.failCount}</td>
+              <td className="mono" style={{textAlign:"center"}}>{l.passCount}</td>
+              <td className="mono" style={{textAlign:"center"}}>{l.totalCount}</td>
+              <td className="mono" style={{textAlign:"center",color:l.totalCount>0&&l.failCount/l.totalCount>0?"var(--accent-red)":"var(--text-muted)"}}>{l.totalCount>0?(l.failCount/l.totalCount*100).toFixed(1)+"%":"0.0%"}</td>
+              <td style={{textAlign:"center"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} className="dl-tip" data-tip={`${l.filename}\n${t("upload.colUploadTime")}: ${l.uploadedAtStr}`} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer",fontSize:16}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>
+              <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>{t("upload.delete")}</button></td>
             </tr>
           ))}
         </tbody>
