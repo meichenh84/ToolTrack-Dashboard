@@ -108,7 +108,7 @@ export default function OverviewTab({activeTools,allLogs}){
             <thead><tr>
               <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
               <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
+              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
               {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
             </tr></thead>
             <tbody>
@@ -116,7 +116,7 @@ export default function OverviewTab({activeTools,allLogs}){
                 const key=matrixSort.key;
                 let av,bv;
                 if(key==="sort_order"){av=a.sort_order;bv=b.sort_order}
-                else if(key==="name"){av=a.name.toLowerCase();bv=b.name.toLowerCase()}
+                else if(key==="name"){av=`${a.dev_site}_${a.cat}_${a.name}`.toLowerCase();bv=`${b.dev_site}_${b.cat}_${b.name}`.toLowerCase()}
                 else{
                   const aLogs=filteredMatrixLogs.filter(l=>l.toolId===a.id);
                   const bLogs=filteredMatrixLogs.filter(l=>l.toolId===b.id);
@@ -131,7 +131,7 @@ export default function OverviewTab({activeTools,allLogs}){
                 return(
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
-                    <td className="matrix-tool-name">{tool.name}</td>
+                    <td className="matrix-tool-name">{`${tool.dev_site}_${tool.cat}_${tool.name}`}</td>
                     {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
                     )})()}

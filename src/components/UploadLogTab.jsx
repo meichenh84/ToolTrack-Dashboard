@@ -86,8 +86,8 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
-              <td style={{width:"100%"}}>{l.toolName}</td>
-              <td style={{minWidth:140}}>{l.modelName||"—"}</td>
+              <td style={{minWidth:160,whiteSpace:"nowrap"}}>{l.toolName}</td>
+              <td style={{minWidth:180,whiteSpace:"nowrap"}}>{l.modelName||"—"}</td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
               <td style={{textAlign:"center"}}><span className="dl-tip" data-tip={l.testerEmail||"—"} style={{cursor:"default",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</span></td>

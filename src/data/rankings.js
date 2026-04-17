@@ -10,7 +10,7 @@ export function rank(arr, key, filterFn = () => true) {
 export function rankToolUsage(logs, tools) {
   const m = {};
   const idToName = {};
-  tools.forEach(t => { m[t.id] = 0; idToName[t.id] = t.name; });
+  tools.forEach(t => { m[t.id] = 0; idToName[t.id] = `${t.dev_site}_${t.cat}_${t.name}`; });
   const toolIds = new Set(tools.map(t=>t.id));
   logs.filter(l=>toolIds.has(l.toolId)).forEach(l => { m[l.toolId] = (m[l.toolId]||0) + 1; });
   return Object.entries(m).map(([id,c])=>({name:idToName[id],count:c})).sort((a,b)=>b.count-a.count);
@@ -19,7 +19,7 @@ export function rankToolUsage(logs, tools) {
 export function rankToolBySite(site, tools, logs) {
   const m = {};
   const idToName = {};
-  tools.forEach(t => { m[t.id] = 0; idToName[t.id] = t.name; });
+  tools.forEach(t => { m[t.id] = 0; idToName[t.id] = `${t.dev_site}_${t.cat}_${t.name}`; });
   const toolIds = new Set(tools.map(t=>t.id));
   logs.filter(l=>l.test_site===site&&toolIds.has(l.toolId)).forEach(l => { m[l.toolId] = (m[l.toolId]||0) + 1; });
   return Object.entries(m).map(([id,c])=>({name:idToName[id],count:c})).sort((a,b)=>b.count-a.count);
@@ -35,7 +35,7 @@ export function computeRankings(tools, allLogs) {
     recentToolBySite: Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, recentActive)])),
     totalToolBySite:  Object.fromEntries(SITES.map(s=>[s, rankToolBySite(s, tools, activeLogs)])),
     toolFails:        tools.filter(t=>t.hasReport).map(t=>({
-                        name:t.name,
+                        name:`${t.dev_site}_${t.cat}_${t.name}`,
                         count:activeLogs.filter(l=>l.toolId===t.id&&l.result==="fail").length,
                       })).sort((a,b)=>b.count-a.count),
     testerUploads:    rank(activeLogs, "tester"),

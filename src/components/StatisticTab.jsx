@@ -18,7 +18,7 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
           {SITES.map(s=>{
             const siteLogs=allLogs.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
             const toolMap={};
-            activeTools.forEach(t=>{toolMap[t.id]={name:t.name,count:0,dur:0}});
+            activeTools.forEach(t=>{toolMap[t.id]={name:`${t.dev_site}_${t.cat}_${t.name}`,count:0,dur:0}});
             siteLogs.forEach(l=>{if(toolMap[l.toolId]){toolMap[l.toolId].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolId].dur+=h}});
             const data=Object.values(toolMap).map(v=>({name:v.name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
             const max=data.length>0?data[0].count:0;

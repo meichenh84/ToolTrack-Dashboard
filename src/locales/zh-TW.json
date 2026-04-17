@@ -56,7 +56,7 @@
     "columnStart": "欄位起始期間：",
     "dataFilter": "資料篩選：",
     "matrixNote": "追蹤各工具每月是否實際投入使用 — <s>整期未使用的工具需特別關注是否落實於日常測試流程</s>　｜　<g>綠色數字</g> = 該月測試次數與測試時數(即節省時數)　｜　<r>N/A</r> = 該月無使用紀錄",
-    "toolName": "工具名稱",
+    "toolName": "完整名稱",
     "totalCount": "總次數",
     "totalHours": "總時數",
     "times": " 次",
