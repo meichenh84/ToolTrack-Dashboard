@@ -54,15 +54,15 @@ input[type="file"]{display:none}
 .search-input:focus{border-color:var(--accent-cyan);box-shadow:0 0 0 2px rgba(0,212,255,0.1)}
 .filter-btn{padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);font-family:'DM Mono','Microsoft YaHei','Microsoft JhengHei','PingFang SC',monospace;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap}
 .filter-btn:hover,.filter-btn.active{border-color:var(--accent-cyan);color:var(--accent-cyan);background:rgba(0,212,255,0.06)}
-table{width:100%;border-collapse:collapse;table-layout:fixed}
+table{width:100%;border-collapse:collapse;table-layout:auto}
 thead tr{border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-th{padding:10px 16px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);text-align:center;font-weight:500;background:rgba(0,0,0,0.2)}
+th{padding:10px 16px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);text-align:center;font-weight:500;background:rgba(0,0,0,0.2);white-space:nowrap}
 th.sortable{cursor:pointer;user-select:none;transition:color .2s}
 th.sortable:hover{color:var(--accent-cyan)}
 tbody tr{border-bottom:1px solid rgba(26,45,66,0.4);transition:all .15s;cursor:pointer}
 tbody tr:hover{background:rgba(0,212,255,0.04)}
 tbody tr:hover td{color:var(--text-primary)}
-td{padding:12px 16px;font-size:12px;color:var(--text-secondary);word-break:break-word;overflow-wrap:break-word}
+td{padding:12px 16px;font-size:12px;color:var(--text-secondary);white-space:nowrap}
 td.mono{font-family:'DM Mono','Microsoft YaHei','Microsoft JhengHei','PingFang SC',monospace}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:10px;letter-spacing:.5px}
 .badge-pass{background:rgba(0,184,148,0.12);color:var(--accent-teal);border:1px solid rgba(0,184,148,0.2)}
@@ -84,6 +84,7 @@ td.mono{font-family:'DM Mono','Microsoft YaHei','Microsoft JhengHei','PingFang S
 .cat-sw{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.5px;margin-right:6px;background:rgba(155,89,182,0.15);color:#b97edb;border:1px solid rgba(155,89,182,0.25)}
 .delete-btn{padding:5px 12px;background:transparent;border:1px solid rgba(231,76,60,0.3);border-radius:5px;color:var(--accent-red);font-family:'DM Mono','Microsoft YaHei','Microsoft JhengHei','PingFang SC',monospace;font-size:10px;cursor:pointer;transition:all .2s;letter-spacing:1px}
 .delete-btn:hover{border-color:var(--accent-red);background:rgba(231,76,60,0.12);box-shadow:0 0 10px rgba(231,76,60,0.15)}
+.dl-tip{position:relative;display:inline-flex}.dl-tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border-bright);border-radius:6px;padding:6px 10px;font-size:11px;white-space:pre-line;text-align:left;pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;min-width:max-content}.dl-tip::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--border-bright);pointer-events:none;opacity:0;transition:opacity .15s;z-index:50}.dl-tip:hover::after,.dl-tip:hover::before{opacity:1}
 .rank-stack{display:flex;flex-direction:column;gap:20px;animation:fadeIn .6s ease .3s both}
 .hero-panel{border-color:rgba(0,212,255,0.3)!important;box-shadow:0 0 30px rgba(0,212,255,0.06),inset 0 1px 0 rgba(0,212,255,0.1)}
 .hero-panel .panel-header{background:rgba(0,212,255,0.04)}
@@ -212,9 +213,9 @@ select.form-input{cursor:pointer}
 .matrix-wrap{overflow-x:auto;padding:0 0 4px}
 .usage-matrix{width:100%;border-collapse:collapse;table-layout:fixed}
 .usage-matrix th,.usage-matrix td{text-align:center;padding:16px 8px;font-size:13px;border-bottom:1px solid var(--border)}
-.matrix-tool-header{text-align:left!important;padding-left:16px!important;width:180px;min-width:180px;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;font-weight:500;background:rgba(0,0,0,0.2);position:sticky;left:0;z-index:2}
+.matrix-tool-header{text-align:left!important;padding-left:16px!important;width:200px;min-width:200px;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;font-weight:500;background:rgba(0,0,0,0.2);position:sticky;left:0;z-index:2}
 .matrix-month-header{font-family:'Orbitron',monospace;font-size:10px;color:var(--text-secondary);font-weight:700;letter-spacing:1px;background:rgba(0,0,0,0.2)}
-.matrix-tool-name{text-align:left!important;padding-left:16px!important;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;min-width:180px;position:sticky;left:0;z-index:1;background:var(--bg-card)}
+.matrix-tool-name{text-align:left!important;padding-left:16px!important;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:200px;min-width:200px;position:sticky;left:0;z-index:1;background:var(--bg-card)}
 .matrix-cell{font-weight:700;letter-spacing:.5px;transition:all .2s}
 .cell-used{color:#2ecc71;font-size:12px;font-family:'Orbitron',monospace;font-weight:800}
 .cell-count{font-size:15px;line-height:1}
@@ -234,6 +235,14 @@ select.form-input{cursor:pointer}
 .lang-btn.active{background:rgba(0,212,255,0.15);color:var(--accent-cyan);font-weight:600}
 
 /* ═══ Responsive ═══ */
+@media(max-width:1600px){
+.header{padding:18px 28px}
+.nav-tabs{padding:14px 28px 0}
+.main{padding:24px 28px;gap:20px}
+td{padding:10px 10px}
+th{padding:8px 10px}
+.site-col .tool-bar-wrap{width:50px}
+}
 @media(max-width:1200px){
 .stats-row{grid-template-columns:repeat(2,1fr)}
 .site-col{border-right-color:var(--border)}
@@ -260,8 +269,8 @@ select.form-input{cursor:pointer}
 .modal-header{padding:14px 16px}
 .modal-body{padding:14px 16px}
 table{display:block;overflow-x:auto}
-thead{display:table;width:100%;table-layout:fixed}
-tbody{display:table;width:100%;table-layout:fixed}
+thead{display:table;width:100%;table-layout:auto}
+tbody{display:table;width:100%;table-layout:auto}
 th{padding:8px 10px;font-size:11px;white-space:nowrap}
 td{padding:8px 10px;font-size:11px}
 .upload-zone{margin:12px;padding:20px 14px}

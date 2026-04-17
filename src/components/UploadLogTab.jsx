@@ -65,33 +65,31 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
       <table>
         <thead><tr>
-          <th style={{width:"3%"}}>#</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("uploadedAt")}>{t("upload.colUploadTime")}{sortIcon("uploadedAt")}</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("toolName")}>{t("upload.colToolName")}{sortIcon("toolName")}</th>
-          <th style={{width:"10%"}} className="sortable" onClick={()=>handleSort("modelName")}>{t("upload.colModelName")}{sortIcon("modelName")}</th>
-          <th style={{width:"13%"}} className="sortable" onClick={()=>handleSort("filename")}>{t("upload.colLogFilename")}{sortIcon("filename")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_site")}>{t("upload.colTestSite")}{sortIcon("test_site")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("test_unit")}>{t("upload.colTestUnit")}{sortIcon("test_unit")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("tester")}>{t("upload.colTester")}{sortIcon("tester")}</th>
-          <th style={{width:"11%"}} className="sortable" onClick={()=>handleSort("testerEmail")}>{t("upload.colTesterEmail")}{sortIcon("testerEmail")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
-          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
-          <th style={{width:"5%"}}>{t("upload.colAction")}</th>
+          <th>#</th>
+          <th className="sortable" onClick={()=>handleSort("toolName")}>{t("upload.colToolName")}{sortIcon("toolName")}</th>
+          <th className="sortable" onClick={()=>handleSort("modelName")}>{t("upload.colModelName")}{sortIcon("modelName")}</th>
+          <th className="sortable" onClick={()=>handleSort("test_site")}>{t("upload.colTestSite")}{sortIcon("test_site")}</th>
+          <th className="sortable" onClick={()=>handleSort("test_unit")}>{t("upload.colTestUnit")}{sortIcon("test_unit")}</th>
+          <th className="sortable" onClick={()=>handleSort("tester")}>{t("upload.colTester")}{sortIcon("tester")}</th>
+          <th className="sortable" onClick={()=>handleSort("testerEmail")}>{t("upload.colTesterEmail")}{sortIcon("testerEmail")}</th>
+          <th className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
+          <th className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
+          <th>{t("upload.colDownload")}</th>
+          <th>{t("upload.colAction")}</th>
         </tr></thead>
         <tbody>
           {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
-              <td className="mono" style={{textAlign:"center"}}>{l.uploadedAtStr}</td>
               <td>{l.toolName}</td>
               <td>{l.modelName||"—"}</td>
-              <td style={{maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer"}}>{l.filename}</a></td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
               <td style={{textAlign:"center"}}>{l.tester}</td>
               <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
+              <td style={{textAlign:"center"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} className="dl-tip" data-tip={`${l.filename}\n${t("upload.colUploadTime")}: ${l.uploadedAtStr}`} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer",fontSize:16}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>
               <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>{t("upload.delete")}</button></td>
             </tr>
           ))}
