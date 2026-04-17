@@ -191,7 +191,7 @@ function validateAndParseLog(text, filename) {
     return m ? m[1].trim() : null;
   };
 
-  const toolName = get("Tool");
+  const toolName = get("Tool Full Name");
   const modelName = get("Model Name") || "—";
   const site = get("Test Site");
   const tester = get("Tester");
@@ -209,7 +209,7 @@ function validateAndParseLog(text, filename) {
 
   // Required fields
   const missing = [];
-  if (!toolName) missing.push("Tool");
+  if (!toolName) missing.push("Tool Full Name");
   if (!site) missing.push("Test Site");
   if (!tester) missing.push("Tester");
   if (!logStart) missing.push("Test_Log Start");
@@ -219,8 +219,8 @@ function validateAndParseLog(text, filename) {
   }
 
   // ── Layer 2.5: Field length limits ──
-  if (toolName && toolName.length > LIMITS.TOOL_NAME_MAX) return { ok: false, error: `Tool 名稱超過 ${LIMITS.TOOL_NAME_MAX} 字元上限` };
-  if (toolName && getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool 名稱超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
+  if (toolName && toolName.length > LIMITS.TOOL_NAME_MAX) return { ok: false, error: `Tool Full Name 超過 ${LIMITS.TOOL_NAME_MAX} 字元上限` };
+  if (toolName && getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool Full Name 超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
   if (tester && tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
   if (testerEmail !== "—" && testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
   if (testUnit && testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
@@ -230,7 +230,7 @@ function validateAndParseLog(text, filename) {
   // ── Layer 3: Data ──
 
   // Tool must exist in DB
-  const toolRow = db.prepare("SELECT id, cat, has_report FROM tools WHERE name = ?").get(toolName);
+  const toolRow = db.prepare("SELECT id, cat, has_report FROM tools WHERE (dev_site || '_' || cat || '_' || name) = ?").get(toolName);
   if (!toolRow) {
     return { ok: false, error: `工具「${toolName}」不存在，請先至 Tool Status 新增該工具` };
   }

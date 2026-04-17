@@ -20,8 +20,12 @@ export const ALL_LOGS = (() => {
             const hour = 8 + (idx * 3) % 10;
             const min = (idx * 17) % 60;
             const d = new Date(+year, +month - 1, day, hour, min);
+            const result = tool.hasReport && pat ? pat[idx % pat.length] : null;
+            const totalCount = 15 + (idx % 16);
+            const failCount = result === "fail" ? 1 + (idx % 5) : 0;
+            const passCount = totalCount - failCount;
             logs.push({
-              toolId: tool.id, toolName: tool.name, cat: tool.cat,
+              toolId: tool.id, toolName: `${tool.dev_site}_${tool.cat}_${tool.name}`, cat: tool.cat,
               filename: `${tool.id}_${site.toLowerCase()}_${String(idx+1).padStart(3,"0")}.log`,
               test_site: site, test_unit: testerObj.test_unit,
               modelName: models[idx % models.length],
@@ -29,8 +33,9 @@ export const ALL_LOGS = (() => {
               tester: testerObj.name,
               time: d.getTime(),
               timeStr: `${year}/${String(+month).padStart(2,"0")}/${String(day).padStart(2,"0")} ${String(hour).padStart(2,"0")}:${String(min).padStart(2,"0")}`,
-              result: tool.hasReport && pat ? pat[idx % pat.length] : null,
+              result,
               dur: tool.hasReport ? `${((idx*7+3)%50/10+1).toFixed(1)}h` : "—",
+              failCount, passCount, totalCount,
             });
             idx++;
           }

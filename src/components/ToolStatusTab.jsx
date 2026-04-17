@@ -16,7 +16,7 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
   const filteredTools=useMemo(()=>{
     if(!dirSearch)return tools;
     const q=dirSearch.toLowerCase();
-    return tools.filter(t=>t.name.toLowerCase().includes(q)||t.dev_site.toLowerCase().includes(q)||t.dev_unit.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q));
+    return tools.filter(t=>{const full=`${t.dev_site}_${t.cat}_${t.name}`.toLowerCase();return full.includes(q)||t.name.toLowerCase().includes(q)||t.dev_site.toLowerCase().includes(q)||t.dev_unit.toLowerCase().includes(q)||t.dev.name.toLowerCase().includes(q)});
   },[dirSearch,tools]);
 
   const sortedTools=useMemo(()=>{
@@ -45,18 +45,18 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
       <table>
         <thead><tr>
           <th style={{width:"3%"}} className="sortable" onClick={()=>handleSort("sort_order")}>#{sortIcon("sort_order")}</th>
-          <th style={{width:"5%"}}>{t("toolStatus.colRetire")}</th>
-          <th style={{width:"14%"}} className="sortable" onClick={()=>handleSort("name")}>{t("toolStatus.colToolName")}{sortIcon("name")}</th>
+          <th style={{width:"4%"}}>{t("toolStatus.colRetire")}</th>
+          <th style={{width:"18%"}} className="sortable" onClick={()=>handleSort("name")}>{t("toolStatus.colToolName")}{sortIcon("name")}</th>
           <th style={{width:"5%"}} className="sortable" onClick={()=>handleSort("cat")}>{t("toolStatus.colType")}{sortIcon("cat")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("dev_site")}>{t("toolStatus.colDevSite")}{sortIcon("dev_site")}</th>
-          <th style={{width:"7%"}} className="sortable" onClick={()=>handleSort("dev_unit")}>{t("toolStatus.colDevUnit")}{sortIcon("dev_unit")}</th>
-          <th style={{width:"6%"}}>{t("toolStatus.colVersion")}</th>
-          <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("dev.name")}>{t("toolStatus.colDeveloper")}{sortIcon("dev.name")}</th>
-          <th style={{width:"14%"}} className="sortable" onClick={()=>handleSort("dev.email")}>{t("toolStatus.colEmail")}{sortIcon("dev.email")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("dev.ext")}>{t("toolStatus.colExt")}{sortIcon("dev.ext")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dev_site")}>{t("toolStatus.colDevSite")}{sortIcon("dev_site")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dev_unit")}>{t("toolStatus.colDevUnit")}{sortIcon("dev_unit")}</th>
+          <th style={{width:"5%"}}>{t("toolStatus.colVersion")}</th>
+          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("dev.name")}>{t("toolStatus.colDeveloper")}{sortIcon("dev.name")}</th>
+          <th style={{width:"12%"}} className="sortable" onClick={()=>handleSort("dev.email")}>{t("toolStatus.colEmail")}{sortIcon("dev.email")}</th>
+          <th style={{width:"6%"}} className="sortable" onClick={()=>handleSort("dev.ext")}>{t("toolStatus.colExt")}{sortIcon("dev.ext")}</th>
           <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("finish_date")}>{t("toolStatus.colServiceStart")}{sortIcon("finish_date")}</th>
-          <th style={{width:"8%"}} className="sortable" onClick={()=>handleSort("service_end_date")}>{t("toolStatus.colServiceEnd")}{sortIcon("service_end_date")}</th>
-          <th style={{width:"10%"}}>{t("toolStatus.colAction")}</th>
+          <th style={{width:"9%"}} className="sortable" onClick={()=>handleSort("service_end_date")}>{t("toolStatus.colServiceEnd")}{sortIcon("service_end_date")}</th>
+          <th style={{width:"9%"}}>{t("toolStatus.colAction")}</th>
         </tr></thead>
         <tbody>
           {sortedTools.map(tool=>{
@@ -65,7 +65,7 @@ export default function ToolStatusTab({tools,activeTools,toggleTool,onAddTool,on
             <tr key={tool.id} style={{opacity:off?0.4:1,transition:"opacity .2s"}}>
               <td className="mono" style={{color:"var(--text-muted)",fontSize:11,textAlign:"center"}}>{tool.sort_order}</td>
               <td style={{textAlign:"center"}}><label className="toggle-switch retire-toggle" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={off} onChange={()=>toggleTool(tool.id)}/><span className="toggle-slider"></span></label></td>
-              <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{tool.name}{off&&<span className="retired-tag">{t("toolStatus.retired")}</span>}</td>
+              <td style={{color:off?"var(--text-muted)":"var(--text-primary)",fontWeight:500}}>{`${tool.dev_site}_${tool.cat}_${tool.name}`}{off&&<span className="retired-tag">{t("toolStatus.retired")}</span>}</td>
               <td style={{textAlign:"center"}}>{tool.cat}</td>
               <td style={{fontWeight:500,textAlign:"center"}}>{tool.dev_site}</td>
               <td style={{textAlign:"center"}}>{tool.dev_unit}</td>

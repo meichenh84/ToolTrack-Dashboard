@@ -73,7 +73,6 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           <th className="sortable" onClick={()=>handleSort("test_site")}>{t("upload.colTestSite")}{sortIcon("test_site")}</th>
           <th className="sortable" onClick={()=>handleSort("test_unit")}>{t("upload.colTestUnit")}{sortIcon("test_unit")}</th>
           <th className="sortable" onClick={()=>handleSort("tester")}>{t("upload.colTester")}{sortIcon("tester")}</th>
-          <th className="sortable" onClick={()=>handleSort("testerEmail")}>{t("upload.colTesterEmail")}{sortIcon("testerEmail")}</th>
           <th className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
           <th className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
           <th className="sortable" onClick={()=>handleSort("failCount")}>{t("upload.colFailCases")}{sortIcon("failCount")}</th>
@@ -87,12 +86,11 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           {sortedLogs.map((l,i)=>(
             <tr key={l.id}>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
-              <td>{l.toolName}</td>
-              <td>{l.modelName||"—"}</td>
+              <td style={{width:"100%"}}>{l.toolName}</td>
+              <td style={{minWidth:140}}>{l.modelName||"—"}</td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
-              <td style={{textAlign:"center"}}>{l.tester}</td>
-              <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
+              <td style={{textAlign:"center"}}><span className="dl-tip" data-tip={l.testerEmail||"—"} style={{cursor:"default",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</span></td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
               <td className="mono" style={{textAlign:"center"}}>{l.failCount}</td>
