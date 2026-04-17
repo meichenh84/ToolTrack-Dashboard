@@ -130,6 +130,12 @@ try { db.exec("ALTER TABLE tools ADD COLUMN finish_date TEXT"); } catch(e) { /* 
 try { db.exec("ALTER TABLE tools DROP COLUMN unit"); } catch(e) { /* column already dropped */ }
 try { db.exec("ALTER TABLE tools ADD COLUMN sort_order INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE tools ADD COLUMN service_end_date TEXT"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN fail_count INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN fail_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN pass_count INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN pass_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN total_count INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN total_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 
 // Backfill sort_order from rowid for existing tools
 (() => {
@@ -194,6 +200,12 @@ function validateAndParseLog(text, filename) {
   const resultRaw = get("Result");
   const logStart = get("Test_Log Start");
   const logEnd = get("Test_Log End");
+  const failCount = parseInt(get("Fail Count")) || 0;
+  const failRounds = parseInt(get("Fail Rounds")) || 0;
+  const passCount = parseInt(get("Pass Count")) || 0;
+  const passRounds = parseInt(get("Pass Rounds")) || 0;
+  const totalCount = parseInt(get("Total Count")) || 0;
+  const totalRounds = parseInt(get("Total Rounds")) || 0;
 
   // Required fields
   const missing = [];
@@ -277,6 +289,12 @@ function validateAndParseLog(text, filename) {
       time: startDate.getTime(),
       time_str: fmtDate(startDate),
       dur: `${durH}h`,
+      fail_count: failCount,
+      fail_rounds: failRounds,
+      pass_count: passCount,
+      pass_rounds: passRounds,
+      total_count: totalCount,
+      total_rounds: totalRounds,
     },
   };
 }
@@ -313,8 +331,8 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, fail_rounds, pass_count, pass_rounds, total_count, total_rounds)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
@@ -325,7 +343,7 @@ function importLogs() {
       if (v.ok) {
         const p = v.data;
         const fileSize = fs.statSync(filePath).size;
-        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time);
+        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time, p.fail_count, p.fail_rounds, p.pass_count, p.pass_rounds, p.total_count, p.total_rounds);
         if (info.changes > 0) imported++;
       }
     });
@@ -407,6 +425,9 @@ app.get("/api/logs", (req, res) => {
     result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
     size: l.size || 0,
     uploadedAt: l.uploaded_at, uploadedAtStr: fmtTime(l.uploaded_at),
+    failCount: l.fail_count || 0, failRounds: l.fail_rounds || 0,
+    passCount: l.pass_count || 0, passRounds: l.pass_rounds || 0,
+    totalCount: l.total_count || 0, totalRounds: l.total_rounds || 0,
   })));
 });
 
@@ -416,8 +437,8 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, fail_rounds, pass_count, pass_rounds, total_count, total_rounds)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
     // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
@@ -437,7 +458,7 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
           fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
-          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now());
+          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now(), p.fail_count, p.fail_rounds, p.pass_count, p.pass_rounds, p.total_count, p.total_rounds);
           results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }

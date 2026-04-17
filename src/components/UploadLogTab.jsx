@@ -20,7 +20,9 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
 
   const sortedLogs=useMemo(()=>{
     return[...filteredLogs].sort((a,b)=>{
-      let av=a[sortCfg.key],bv=b[sortCfg.key];
+      let av,bv;
+      if(sortCfg.key==="failRate"){av=a.totalCount>0?a.failCount/a.totalCount:0;bv=b.totalCount>0?b.failCount/b.totalCount:0}
+      else{av=a[sortCfg.key];bv=b[sortCfg.key]}
       if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
       if(sortCfg.key==="dur"){av=parseFloat(av)||0;bv=parseFloat(bv)||0}
       else if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
@@ -74,6 +76,10 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
           <th className="sortable" onClick={()=>handleSort("testerEmail")}>{t("upload.colTesterEmail")}{sortIcon("testerEmail")}</th>
           <th className="sortable" onClick={()=>handleSort("dur")}>{t("upload.colDuration")}{sortIcon("dur")}</th>
           <th className="sortable" onClick={()=>handleSort("result")}>{t("upload.colResult")}{sortIcon("result")}</th>
+          <th className="sortable" onClick={()=>handleSort("failCount")}>{t("upload.colFailCases")}{sortIcon("failCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("passCount")}>{t("upload.colPassCases")}{sortIcon("passCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("totalCount")}>{t("upload.colTotalCases")}{sortIcon("totalCount")}</th>
+          <th className="sortable" onClick={()=>handleSort("failRate")}>{t("upload.colFailRate")}{sortIcon("failRate")}</th>
           <th>{t("upload.colDownload")}</th>
           <th>{t("upload.colAction")}</th>
         </tr></thead>
@@ -89,6 +95,10 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td style={{color:"var(--text-muted)",fontSize:11}}>{l.testerEmail||"—"}</td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
+              <td className="mono" style={{textAlign:"center"}}>{l.failCount}</td>
+              <td className="mono" style={{textAlign:"center"}}>{l.passCount}</td>
+              <td className="mono" style={{textAlign:"center"}}>{l.totalCount}</td>
+              <td className="mono" style={{textAlign:"center",color:l.totalCount>0&&l.failCount/l.totalCount>0?"var(--accent-red)":"var(--text-muted)"}}>{l.totalCount>0?(l.failCount/l.totalCount*100).toFixed(1)+"%":"0.0%"}</td>
               <td style={{textAlign:"center"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} className="dl-tip" data-tip={`${l.filename}\n${t("upload.colUploadTime")}: ${l.uploadedAtStr}`} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer",fontSize:16}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>
               <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>{t("upload.delete")}</button></td>
             </tr>
