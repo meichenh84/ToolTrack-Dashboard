@@ -47,7 +47,7 @@ export default function OverviewTab({activeTools,allLogs}){
 
   // Filter LOG data
   const filteredMatrixLogs = matrixFilter==="ALL" ? allLogs
-    : ["TPE","XM","FQ"].includes(matrixFilter) ? allLogs.filter(l=>l.test_site===matrixFilter)
+    : ["TPE","XM","FQ","GZ"].includes(matrixFilter) ? allLogs.filter(l=>l.test_site===matrixFilter)
     : allLogs.filter(l=>l.test_unit&&l.test_unit.toUpperCase()===matrixFilter);
 
   const getCount=(toolId,year,month)=>{
@@ -95,7 +95,7 @@ export default function OverviewTab({activeTools,allLogs}){
             <div style={{display:"flex",alignItems:"center",gap:6}}>
               <span style={{fontSize:11,color:"var(--text-muted)",letterSpacing:1,whiteSpace:"nowrap"}}>{t("overview.dataFilter")}</span>
               <select className="year-select" value={matrixFilter} onChange={e=>setMatrixFilter(e.target.value)}>
-                {["ALL","TPE","XM","FQ","TV","MONITOR"].map(f=><option key={f} value={f}>{f}</option>)}
+                {["ALL","TPE","XM","FQ","GZ","TV","MONITOR","PD","OTHERS"].map(f=><option key={f} value={f}>{f}</option>)}
               </select>
             </div>
           </div>
