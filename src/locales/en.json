@@ -32,7 +32,7 @@
     "nameRequired": "⚠ Tool Name is required",
     "nameNoSpace": "⚠ Tool Name cannot contain spaces",
     "nameBadChar": "⚠ Tool Name contains disallowed symbols (< > & \" ' `)",
-    "nameTooLong": "⚠ Tool Name exceeds limit (max 30 units; CJK=2, ASCII=1)",
+    "nameTooLong": "⚠ Tool Name exceeds limit (max 20 units; CJK=2, ASCII=1)",
     "versionRequired": "⚠ Version is required (format 00.00~99.99)",
     "devRequired": "⚠ Developer is required",
     "devBadChar": "⚠ Developer contains disallowed symbols (< > & \" ' `)",

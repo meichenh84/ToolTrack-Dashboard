@@ -67,7 +67,7 @@ export default function Dashboard(){
     if(!toolForm.name.trim()){setNotif(t("validate.nameRequired"));return}
     if(/\s/.test(toolForm.name)){setNotif(t("validate.nameNoSpace"));return}
     if(/[<>&"'`]/.test(toolForm.name)){setNotif(t("validate.nameBadChar"));return}
-    if(getVisualWidth(toolForm.name.trim())>30){setNotif(t("validate.nameTooLong"));return}
+    if(getVisualWidth(toolForm.name.trim())>20){setNotif(t("validate.nameTooLong"));return}
     if(!toolForm.v||!/^\d{2}\.\d{2}$/.test(toolForm.v)){setNotif(t("validate.versionRequired"));return}
     if(!toolForm.devName||!toolForm.devName.trim()){setNotif(t("validate.devRequired"));return}
     if(/[<>&"'`]/.test(toolForm.devName)){setNotif(t("validate.devBadChar"));return}
