@@ -32,7 +32,7 @@
     "nameRequired": "⚠ 工具名稱為必填",
     "nameNoSpace": "⚠ 工具名稱不允許空格",
     "nameBadChar": "⚠ 工具名稱含有不允許的符號（< > & \" ' `）",
-    "nameTooLong": "⚠ 工具名稱超過上限（最多30字元，中文佔2、英文與半形符號佔1）",
+    "nameTooLong": "⚠ 工具名稱超過上限（最多20字元，中文佔2、英文與半形符號佔1）",
     "versionRequired": "⚠ 版本為必填（格式 00.00~99.99）",
     "devRequired": "⚠ 開發者為必填",
     "devBadChar": "⚠ 開發者含有不允許的符號（< > & \" ' `）",
@@ -57,6 +57,8 @@
     "dataFilter": "資料篩選：",
     "matrixNote": "追蹤各工具每月是否實際投入使用 — <s>整期未使用的工具需特別關注是否落實於日常測試流程</s>　｜　<g>綠色數字</g> = 該月測試次數與測試時數(即節省時數)　｜　<r>N/A</r> = 該月無使用紀錄",
     "toolName": "完整名稱",
+    "totalFail": "總失敗項",
+    "totalCases": "總項",
     "totalCount": "總次數",
     "totalHours": "總時數",
     "times": " 次",
@@ -66,9 +68,9 @@
   },
   "statistic": {
     "siteUsageTitle": "所有工具已被各 Site 使用總次數與總時數",
+    "unusedLegend": "⚠ = 未使用",
     "total": "合計",
-    "unused": "⚠ UNUSED",
-    "failTitle": "工具協助 Debug 累計 Fail 數",
+    "unused": "⚠",
     "testerTitle": "測試者上傳次數與時數"
   },
   "upload": {
@@ -88,10 +90,10 @@
     "colTesterEmail": "測試者信箱",
     "colDuration": "時數",
     "colResult": "結果",
-    "colFailCases": "失敗 Cases",
-    "colPassCases": "成功 Cases",
-    "colTotalCases": "總 Cases",
-    "colFailRate": "Fail Rate",
+    "colFailCases": "失敗項",
+    "colPassCases": "成功項",
+    "colTotalCases": "總項",
+    "colFailRate": "失敗率",
     "colAction": "操作",
     "delete": "刪除"
   },
@@ -159,11 +161,6 @@
     "legendAll": "全部上線累計",
     "legendActive": "扣除退役",
     "legendRetired": "退役累計"
-  },
-  "ranking": {
-    "noData": "無資料",
-    "total": "合計",
-    "unused": "⚠ UNUSED"
   },
   "lang": {
     "zh-TW": "繁中",

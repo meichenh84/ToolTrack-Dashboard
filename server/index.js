@@ -42,7 +42,7 @@ function getVisualWidth(str) {
 
 const LIMITS = {
   TOOL_NAME_MAX: 50,
-  TOOL_NAME_VISUAL: 30,
+  TOOL_NAME_VISUAL: 31,
   VERSION: 30,
   DEV_UNIT: 50,
   DEV_NAME: 50,

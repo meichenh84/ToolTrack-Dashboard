@@ -1,19 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { SITES } from "../data/rankings.js";
-import RankingPanel from "./RankingPanel.jsx";
 import ToolCompletionTrend from "./ToolCompletionTrend.jsx";
 
 const MEDALS=["🏆","🥈","🥉"];
 const TIERS=["gold","silver","bronze"];
 
-export default function StatisticTab({activeTools,allTools,allLogs,R}){
+export default function StatisticTab({activeTools,allTools,allLogs}){
   const{t}=useTranslation();
   const toolIds=new Set(activeTools.map(t=>t.id));
   return(
     <div className="rank-stack">
       <ToolCompletionTrend tools={allTools}/>
       <div className="panel">
-        <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>{t("statistic.siteUsageTitle")}</div></div>
+        <div className="panel-header"><div className="panel-title"><div className="panel-title-dot" style={{background:"var(--accent-teal)",boxShadow:"0 0 6px var(--accent-teal)"}}></div>{t("statistic.siteUsageTitle")}<span style={{marginLeft:12,fontSize:11,fontWeight:500,color:"var(--accent-red)"}}>{t("statistic.unusedLegend")}</span></div></div>
         <div className="site-columns">
           {SITES.map(s=>{
             const siteLogs=allLogs.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
@@ -63,7 +62,6 @@ export default function StatisticTab({activeTools,allTools,allLogs,R}){
           })}
         </div>
       </div>
-      <RankingPanel title={t("statistic.failTitle")} data={R.toolFails} dotColor="var(--accent-red)" barBg="var(--accent-red)" showTotal/>
       {(()=>{
         const testerMap={};
         allLogs.filter(l=>toolIds.has(l.toolId)).forEach(l=>{

@@ -22,6 +22,13 @@ export default function OverviewTab({activeTools,allLogs}){
     while(mm<1){mm+=12;yy--}
     months12.push({year:yy,month:mm});
   }
+  // Group consecutive months by year for the grouped header (year on top, month below)
+  const yearGroups=[];
+  for(const m of months12){
+    const last=yearGroups[yearGroups.length-1];
+    if(last&&last.year===m.year)last.count++;
+    else yearGroups.push({year:m.year,count:1});
+  }
 
   // Dropdown: upper bound = system time (auto-extends), lower bound = earliest log date
   const periodOptions=useMemo(()=>{
@@ -105,12 +112,25 @@ export default function OverviewTab({activeTools,allLogs}){
         </div>
         <div className="matrix-wrap">
           <table className="usage-matrix">
-            <thead><tr>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
-              <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
-              {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
-            </tr></thead>
+            <colgroup>
+              <col style={{width:40}}/>
+              <col/>
+              <col style={{width:76}}/>
+              <col style={{width:76}}/>
+              {months12.map((_,i)=><col key={i} style={{width:80}}/>)}
+            </colgroup>
+            <thead>
+              <tr>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",textAlign:"center"}}>#{matrixSortIcon("sort_order")}</th>
+                <th rowSpan={2} className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalFail")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalFail")}{matrixSortIcon("totalFail")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalCases")}}>{t("overview.totalCases")}{matrixSortIcon("totalCases")}</span></div></th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
+                {yearGroups.map((g,i)=><th key={i} colSpan={g.count} className="matrix-year-header">{g.year}</th>)}
+              </tr>
+              <tr>
+                {months12.map((m,i)=><th key={i} className="matrix-month-header matrix-month-sub">{String(m.month).padStart(2,"0")}</th>)}
+              </tr>
+            </thead>
             <tbody>
               {[...activeTools].sort((a,b)=>{
                 const key=matrixSort.key;
@@ -121,6 +141,8 @@ export default function OverviewTab({activeTools,allLogs}){
                   const aLogs=filteredMatrixLogs.filter(l=>l.toolId===a.id);
                   const bLogs=filteredMatrixLogs.filter(l=>l.toolId===b.id);
                   if(key==="totalCount"){av=aLogs.length;bv=bLogs.length}
+                  else if(key==="totalFail"){av=aLogs.reduce((s,l)=>s+(l.failCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.failCount||0),0)}
+                  else if(key==="totalCases"){av=aLogs.reduce((s,l)=>s+(l.totalCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.totalCount||0),0)}
                   else{av=aLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);bv=bLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0)}
                 }
                 if(av<bv)return matrixSort.dir==="asc"?-1:1;
@@ -132,12 +154,13 @@ export default function OverviewTab({activeTools,allLogs}){
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{`${tool.dev_site}_${tool.cat}_${tool.name}`}</td>
-                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
-                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
-                    )})()}
+                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tFail=tLogs.reduce((s,l)=>s+(l.failCount||0),0);const tCases=tLogs.reduce((s,l)=>s+(l.totalCount||0),0);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(<>
+                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tFail}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tCases}</div></td>
+                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tDur.toFixed(1)}h</div></td>
+                    </>)})()}
                     {cells.map((c,i)=>(
-                      <td key={i} className={`matrix-cell ${c.count>0?"cell-used":"cell-unused"}`}>
-                        {c.count>0?<><div className="cell-count">{c.count}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
+                      <td key={i} className={c.count>0?"matrix-cell":"matrix-cell cell-unused"}>
+                        {c.count>0?<><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{c.count}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     ))}
                   </tr>
@@ -148,17 +171,20 @@ export default function OverviewTab({activeTools,allLogs}){
                 const relevantLogs=filteredMatrixLogs.filter(l=>toolIdSet.has(l.toolId));
                 const grandCount=relevantLogs.length;
                 const grandDur=relevantLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+                const grandFail=relevantLogs.reduce((s,l)=>s+(l.failCount||0),0);
+                const grandCases=relevantLogs.reduce((s,l)=>s+(l.totalCount||0),0);
                 return(
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
                   <td></td>
                   <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>{t("overview.total")}</td>
-                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
+                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:12}}>{grandFail}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{grandCases}</div></td>
+                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:12}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{grandDur.toFixed(1)}h</div></td>
                   {months12.map((m,i)=>{
                     const mCount=activeTools.reduce((s,t)=>s+getCount(t.id,m.year,m.month),0);
                     const mDur=activeTools.reduce((s,t)=>s+getDur(t.id,m.year,m.month),0);
                     return(
                       <td key={i} className="matrix-cell" style={{fontWeight:700}}>
-                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:15}}>{mCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
+                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:12}}>{mCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     );
                   })}

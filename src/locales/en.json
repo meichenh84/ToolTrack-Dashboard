@@ -32,7 +32,7 @@
     "nameRequired": "⚠ Tool Name is required",
     "nameNoSpace": "⚠ Tool Name cannot contain spaces",
     "nameBadChar": "⚠ Tool Name contains disallowed symbols (< > & \" ' `)",
-    "nameTooLong": "⚠ Tool Name exceeds limit (max 30 units; CJK=2, ASCII=1)",
+    "nameTooLong": "⚠ Tool Name exceeds limit (max 20 units; CJK=2, ASCII=1)",
     "versionRequired": "⚠ Version is required (format 00.00~99.99)",
     "devRequired": "⚠ Developer is required",
     "devBadChar": "⚠ Developer contains disallowed symbols (< > & \" ' `)",
@@ -57,7 +57,9 @@
     "dataFilter": "Data filter:",
     "matrixNote": "Track monthly tool usage — <s>tools unused throughout the period need attention for test workflow compliance</s> | <g>Green numbers</g> = monthly test count & hours saved | <r>N/A</r> = no usage record",
     "toolName": "Full Name",
-    "totalCount": "Total Count",
+    "totalFail": "Total Fail",
+    "totalCases": "Total Count",
+    "totalCount": "Total Runs",
     "totalHours": "Total Hours",
     "times": " times",
     "total": "Total",
@@ -66,9 +68,9 @@
   },
   "statistic": {
     "siteUsageTitle": "Total usage count & hours by site for all tools",
+    "unusedLegend": "⚠ = UNUSED",
     "total": "Total",
-    "unused": "⚠ UNUSED",
-    "failTitle": "Cumulative debug-fail count by tool",
+    "unused": "⚠",
     "testerTitle": "Tester upload count & hours"
   },
   "upload": {
@@ -159,11 +161,6 @@
     "legendAll": "All launched (cumulative)",
     "legendActive": "Excluding retired",
     "legendRetired": "Retired (cumulative)"
-  },
-  "ranking": {
-    "noData": "No data",
-    "total": "Total",
-    "unused": "⚠ UNUSED"
   },
   "lang": {
     "zh-TW": "繁中",
