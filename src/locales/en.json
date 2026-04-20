@@ -57,7 +57,7 @@
     "dataFilter": "Data filter:",
     "matrixNote": "Track monthly tool usage — <s>tools unused throughout the period need attention for test workflow compliance</s> | <g>Green numbers</g> = monthly test count & hours saved | <r>N/A</r> = no usage record",
     "toolName": "Full Name",
-    "totalCount": "Total Count",
+    "totalCount": "Total Runs",
     "totalHours": "Total Hours",
     "times": " times",
     "total": "Total",
