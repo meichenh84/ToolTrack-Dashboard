@@ -115,16 +115,16 @@ export default function OverviewTab({activeTools,allLogs}){
             <colgroup>
               <col style={{width:40}}/>
               <col/>
-              <col style={{width:76}}/>
-              <col style={{width:76}}/>
-              {months12.map((_,i)=><col key={i} style={{width:80}}/>)}
+              <col style={{width:136}}/>
+              <col style={{width:136}}/>
+              {months12.map((_,i)=><col key={i} style={{width:100}}/>)}
             </colgroup>
             <thead>
               <tr>
                 <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",textAlign:"center"}}>#{matrixSortIcon("sort_order")}</th>
                 <th rowSpan={2} className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
-                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalFail")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalFail")}{matrixSortIcon("totalFail")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalCases")}}>{t("overview.totalCases")}{matrixSortIcon("totalCases")}</span></div></th>
-                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalFail")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"nowrap"}}><div style={{lineHeight:1.6}}>{t("overview.totalFail")}{matrixSortIcon("totalFail")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalCases")}}>{t("overview.totalCases")}{matrixSortIcon("totalCases")}</span></div></th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"nowrap"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
                 {yearGroups.map((g,i)=><th key={i} colSpan={g.count} className="matrix-year-header">{g.year}</th>)}
               </tr>
               <tr>
