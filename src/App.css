@@ -110,6 +110,7 @@ td.mono{font-family:'DM Mono','Microsoft YaHei','Microsoft JhengHei','PingFang S
 .tool-item.low-usage:hover{border-color:rgba(231,76,60,0.8);background:rgba(231,76,60,0.14)}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0)}50%{box-shadow:0 0 16px 2px rgba(231,76,60,0.25)}}
 .low-tag{font-size:9px;padding:3px 8px;border-radius:4px;letter-spacing:1px;font-weight:700;background:rgba(231,76,60,0.2);color:var(--accent-red);border:1px solid rgba(231,76,60,0.4);margin-left:10px}
+.site-col .low-tag{background:none;border:none;padding:0}
 .tool-rank{font-family:'Orbitron',monospace;font-size:11px;color:var(--text-muted);width:20px;text-align:center}
 .tool-name-text{flex:1;font-size:12px;color:var(--text-primary);display:flex;align-items:center}
 .tool-bar-wrap{width:100px;height:4px;background:var(--border);border-radius:2px}

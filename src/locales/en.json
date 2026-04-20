@@ -68,9 +68,9 @@
   },
   "statistic": {
     "siteUsageTitle": "Total usage count & hours by site for all tools",
+    "unusedLegend": "⚠ = UNUSED",
     "total": "Total",
-    "unused": "⚠ UNUSED",
-    "failTitle": "Cumulative debug-fail count by tool",
+    "unused": "⚠",
     "testerTitle": "Tester upload count & hours"
   },
   "upload": {
@@ -161,11 +161,6 @@
     "legendAll": "All launched (cumulative)",
     "legendActive": "Excluding retired",
     "legendRetired": "Retired (cumulative)"
-  },
-  "ranking": {
-    "noData": "No data",
-    "total": "Total",
-    "unused": "⚠ UNUSED"
   },
   "lang": {
     "zh-TW": "繁中",

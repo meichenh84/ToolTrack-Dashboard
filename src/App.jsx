@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "./App.css";
-import { computeRankings } from "./data/rankings.js";
 import OverviewTab from "./components/OverviewTab.jsx";
 import StatisticTab from "./components/StatisticTab.jsx";
 import UploadLogTab from "./components/UploadLogTab.jsx";
@@ -50,7 +49,6 @@ export default function Dashboard(){
 
   // ── Derived data ──
   const activeTools=useMemo(()=>tools.filter(t=>t.enabled!==false),[tools]);
-  const R=useMemo(()=>computeRankings(activeTools,logs),[activeTools,logs]);
 
   // ── Tool CRUD ──
   const toggleTool=async(id)=>{
@@ -162,7 +160,7 @@ export default function Dashboard(){
 
       <main className="main">
         {tab==="overview"&&<OverviewTab activeTools={activeTools} allLogs={logs}/>}
-        {tab==="statistic"&&<StatisticTab activeTools={activeTools} allTools={tools} allLogs={logs} R={R}/>}
+        {tab==="statistic"&&<StatisticTab activeTools={activeTools} allTools={tools} allLogs={logs}/>}
         {tab==="upload"&&<UploadLogTab logs={logs} onUpload={handleUpload} onDelete={handleDeleteLog}/>}
         {tab==="directory"&&<ToolStatusTab tools={tools} activeTools={activeTools} toggleTool={toggleTool} onAddTool={openAddTool} onEditTool={openEditTool} onDeleteTool={handleDeleteTool}/>}
       </main>

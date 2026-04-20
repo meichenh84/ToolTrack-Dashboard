@@ -68,9 +68,9 @@
   },
   "statistic": {
     "siteUsageTitle": "所有工具已被各 Site 使用總次數與總時數",
+    "unusedLegend": "⚠ = 未使用",
     "total": "合計",
-    "unused": "⚠ UNUSED",
-    "failTitle": "工具協助 Debug 累計 Fail 數",
+    "unused": "⚠",
     "testerTitle": "測試者上傳次數與時數"
   },
   "upload": {
@@ -161,11 +161,6 @@
     "legendAll": "全部上線累計",
     "legendActive": "扣除退役",
     "legendRetired": "退役累計"
-  },
-  "ranking": {
-    "noData": "無資料",
-    "total": "合計",
-    "unused": "⚠ UNUSED"
   },
   "lang": {
     "zh-TW": "繁中",
