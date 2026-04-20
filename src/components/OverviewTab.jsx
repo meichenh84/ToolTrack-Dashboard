@@ -22,6 +22,13 @@ export default function OverviewTab({activeTools,allLogs}){
     while(mm<1){mm+=12;yy--}
     months12.push({year:yy,month:mm});
   }
+  // Group consecutive months by year for the grouped header (year on top, month below)
+  const yearGroups=[];
+  for(const m of months12){
+    const last=yearGroups[yearGroups.length-1];
+    if(last&&last.year===m.year)last.count++;
+    else yearGroups.push({year:m.year,count:1});
+  }
 
   // Dropdown: upper bound = system time (auto-extends), lower bound = earliest log date
   const periodOptions=useMemo(()=>{
@@ -105,12 +112,23 @@ export default function OverviewTab({activeTools,allLogs}){
         </div>
         <div className="matrix-wrap">
           <table className="usage-matrix">
-            <thead><tr>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",width:40,textAlign:"center"}}>#{ matrixSortIcon("sort_order")}</th>
-              <th className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
-              <th className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
-              {months12.map((m,i)=><th key={i} className="matrix-month-header">{m.year}/{String(m.month).padStart(2,"0")}</th>)}
-            </tr></thead>
+            <colgroup>
+              <col style={{width:40}}/>
+              <col/>
+              <col style={{width:76}}/>
+              {months12.map((_,i)=><col key={i} style={{width:80}}/>)}
+            </colgroup>
+            <thead>
+              <tr>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",textAlign:"center"}}>#{matrixSortIcon("sort_order")}</th>
+                <th rowSpan={2} className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
+                {yearGroups.map((g,i)=><th key={i} colSpan={g.count} className="matrix-year-header">{g.year}</th>)}
+              </tr>
+              <tr>
+                {months12.map((m,i)=><th key={i} className="matrix-month-header matrix-month-sub">{String(m.month).padStart(2,"0")}</th>)}
+              </tr>
+            </thead>
             <tbody>
               {[...activeTools].sort((a,b)=>{
                 const key=matrixSort.key;
