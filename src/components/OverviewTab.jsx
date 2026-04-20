@@ -133,11 +133,11 @@ export default function OverviewTab({activeTools,allLogs}){
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{`${tool.dev_site}_${tool.cat}_${tool.name}`}</td>
                     {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
-                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:15}}>{tCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{tDur.toFixed(1)}h</div></td>
+                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tDur.toFixed(1)}h</div></td>
                     )})()}
                     {cells.map((c,i)=>(
-                      <td key={i} className={`matrix-cell ${c.count>0?"cell-used":"cell-unused"}`}>
-                        {c.count>0?<><div className="cell-count">{c.count}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
+                      <td key={i} className={c.count>0?"matrix-cell":"matrix-cell cell-unused"}>
+                        {c.count>0?<><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{c.count}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     ))}
                   </tr>
@@ -152,13 +152,13 @@ export default function OverviewTab({activeTools,allLogs}){
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
                   <td></td>
                   <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>{t("overview.total")}</td>
-                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:15}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{grandDur.toFixed(1)}h</div></td>
+                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:12}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{grandDur.toFixed(1)}h</div></td>
                   {months12.map((m,i)=>{
                     const mCount=activeTools.reduce((s,t)=>s+getCount(t.id,m.year,m.month),0);
                     const mDur=activeTools.reduce((s,t)=>s+getDur(t.id,m.year,m.month),0);
                     return(
                       <td key={i} className="matrix-cell" style={{fontWeight:700}}>
-                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:15}}>{mCount}{t("overview.times")}</div><div style={{fontSize:13,fontWeight:700,color:"var(--accent-teal)",marginTop:4}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
+                        {mCount>0?<><div style={{color:"var(--accent-cyan)",fontSize:12}}>{mCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{mDur.toFixed(1)}h</div></>:<>N/A</>}
                       </td>
                     );
                   })}
