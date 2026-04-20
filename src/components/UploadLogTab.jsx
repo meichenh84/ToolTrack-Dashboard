@@ -65,7 +65,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
         ))}
       </div>
 
-      <table>
+      <table className="compact-log-table">
         <thead><tr>
           <th>#</th>
           <th className="sortable" onClick={()=>handleSort("toolName")}>{t("upload.colToolName")}{sortIcon("toolName")}</th>
