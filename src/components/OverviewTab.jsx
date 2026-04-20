@@ -116,12 +116,14 @@ export default function OverviewTab({activeTools,allLogs}){
               <col style={{width:40}}/>
               <col/>
               <col style={{width:76}}/>
+              <col style={{width:76}}/>
               {months12.map((_,i)=><col key={i} style={{width:80}}/>)}
             </colgroup>
             <thead>
               <tr>
                 <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("sort_order")} style={{cursor:"pointer",textAlign:"center"}}>#{matrixSortIcon("sort_order")}</th>
                 <th rowSpan={2} className="matrix-tool-header sortable" onClick={()=>handleMatrixSort("name")} style={{cursor:"pointer"}}>{t("overview.toolName")}{matrixSortIcon("name")}</th>
+                <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalFail")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalFail")}{matrixSortIcon("totalFail")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalCases")}}>{t("overview.totalCases")}{matrixSortIcon("totalCases")}</span></div></th>
                 <th rowSpan={2} className="matrix-month-header sortable" onClick={()=>handleMatrixSort("totalCount")} style={{cursor:"pointer",textAlign:"center",whiteSpace:"normal"}}><div style={{lineHeight:1.6}}>{t("overview.totalCount")}{matrixSortIcon("totalCount")}<br/><span style={{color:"var(--accent-teal)"}} onClick={e=>{e.stopPropagation();handleMatrixSort("totalDur")}}>{t("overview.totalHours")}{matrixSortIcon("totalDur")}</span></div></th>
                 {yearGroups.map((g,i)=><th key={i} colSpan={g.count} className="matrix-year-header">{g.year}</th>)}
               </tr>
@@ -139,6 +141,8 @@ export default function OverviewTab({activeTools,allLogs}){
                   const aLogs=filteredMatrixLogs.filter(l=>l.toolId===a.id);
                   const bLogs=filteredMatrixLogs.filter(l=>l.toolId===b.id);
                   if(key==="totalCount"){av=aLogs.length;bv=bLogs.length}
+                  else if(key==="totalFail"){av=aLogs.reduce((s,l)=>s+(l.failCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.failCount||0),0)}
+                  else if(key==="totalCases"){av=aLogs.reduce((s,l)=>s+(l.totalCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.totalCount||0),0)}
                   else{av=aLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);bv=bLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0)}
                 }
                 if(av<bv)return matrixSort.dir==="asc"?-1:1;
@@ -150,9 +154,10 @@ export default function OverviewTab({activeTools,allLogs}){
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{`${tool.dev_site}_${tool.cat}_${tool.name}`}</td>
-                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(
+                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tFail=tLogs.reduce((s,l)=>s+(l.failCount||0),0);const tCases=tLogs.reduce((s,l)=>s+(l.totalCount||0),0);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(<>
+                    <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tFail}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tCases}</div></td>
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tDur.toFixed(1)}h</div></td>
-                    )})()}
+                    </>)})()}
                     {cells.map((c,i)=>(
                       <td key={i} className={c.count>0?"matrix-cell":"matrix-cell cell-unused"}>
                         {c.count>0?<><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{c.count}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{c.dur.toFixed(1)}h</div></>:<>N/A</>}
@@ -166,10 +171,13 @@ export default function OverviewTab({activeTools,allLogs}){
                 const relevantLogs=filteredMatrixLogs.filter(l=>toolIdSet.has(l.toolId));
                 const grandCount=relevantLogs.length;
                 const grandDur=relevantLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+                const grandFail=relevantLogs.reduce((s,l)=>s+(l.failCount||0),0);
+                const grandCases=relevantLogs.reduce((s,l)=>s+(l.totalCount||0),0);
                 return(
                 <tr style={{background:"rgba(0,212,255,0.06)",borderTop:"2px solid var(--border-bright)"}}>
                   <td></td>
                   <td className="matrix-tool-name" style={{fontWeight:700,color:"var(--accent-cyan)"}}>{t("overview.total")}</td>
+                  <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:12}}>{grandFail}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{grandCases}</div></td>
                   <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--accent-cyan)",fontSize:12}}>{grandCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{grandDur.toFixed(1)}h</div></td>
                   {months12.map((m,i)=>{
                     const mCount=activeTools.reduce((s,t)=>s+getCount(t.id,m.year,m.month),0);
