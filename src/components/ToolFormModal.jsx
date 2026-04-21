@@ -18,6 +18,8 @@ export function getVisualWidth(str){
   return w;
 }
 
+function clampVisual(str,max){let w=0,out="";for(const ch of str){const c=ch.codePointAt(0);const cw=((c>=0x4E00&&c<=0x9FFF)||(c>=0x3400&&c<=0x4DBF)||(c>=0xF900&&c<=0xFAFF)||(c>=0xFF01&&c<=0xFF60)||(c>=0xFFE0&&c<=0xFFE6)||(c>=0x3000&&c<=0x303F)||(c>=0x3040&&c<=0x309F)||(c>=0x30A0&&c<=0x30FF)||(c>=0xAC00&&c<=0xD7AF)||(c>=0x20000&&c<=0x2A6DF))?2:1;if(w+cw>max)break;out+=ch;w+=cw}return out;}
+
 const CharHint=({value="",max})=>{
   const left=max-(value||"").length;
   return <span className="char-hint" style={left<=Math.ceil(max*0.1)?{color:"var(--accent-red)"}:undefined}>{left}/{max}</span>;
@@ -49,13 +51,13 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
           <label className="form-label" style={{marginBottom:10}}><span>{t("toolForm.fullName")}<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6,fontWeight:400}}>{t("toolForm.fullNameHint")}</span></span>
             {(()=>{const full=`${toolForm.dev_site}_${toolForm.cat}_${toolForm.name}`;const fw=getVisualWidth(full);return<>
               <input className="form-input" value={full} readOnly style={{background:"var(--bg-secondary)",cursor:"default"}}/>
-              <span className="char-hint" style={(31-fw)<=3?{color:"var(--accent-red)"}:undefined}>{fw}/31</span>
+              <span className="char-hint" style={(36-fw)<=3?{color:"var(--accent-red)"}:undefined}>{fw}/36</span>
             </>})()}
           </label>
           <div className="form-grid">
             <label className="form-label">{t("toolForm.toolName")}
-              <input className="form-input" value={toolForm.name} onChange={e=>{const v=e.target.value.replace(BLOCKED_RE,'');if(getVisualWidth(v)<=20)setToolForm(p=>({...p,name:v}))}} placeholder="Auto_Run_Test_Tool" maxLength={20} required/>
-              <span className="char-hint" style={(20-getVisualWidth(toolForm.name))<=2?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.name)}/20<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>{t("toolForm.hintNameChars")}</span><HintTip text={t("toolForm.hoverTip")}/></span>
+              <input className="form-input" value={toolForm.name} onChange={e=>{const v=clampVisual(e.target.value.replace(BLOCKED_RE,''),25);setToolForm(p=>({...p,name:v}))}} placeholder="Auto_Run_Test_Tool" required/>
+              <span className="char-hint" style={(25-getVisualWidth(toolForm.name))<=2?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.name)}/25<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>{t("toolForm.hintNameChars")}</span><HintTip text={t("toolForm.hoverTip")}/></span>
             </label>
             <label className="form-label">{t("toolForm.version")}
               <input className="form-input" value={toolForm.v} onChange={e=>{const raw=e.target.value;const digits=raw.replace(/[^\d]/g,'').slice(0,4);let v;if(digits.length>2)v=digits.slice(0,2)+'.'+digits.slice(2);else if(digits.length===2&&raw.includes('.'))v=digits+'.';else v=digits;setToolForm(p=>({...p,v}))}} placeholder="01.00" maxLength={5}/>
@@ -77,11 +79,11 @@ export default function ToolFormModal({editingTool,toolForm,setToolForm,onSave,o
               </select>
             </label>
             <label className="form-label">{t("toolForm.developer")}
-              <input className="form-input" value={toolForm.devName} onChange={e=>{const v=e.target.value.replace(/[<>&"'`]/g,'');if(getVisualWidth(v)<=30)setToolForm(p=>({...p,devName:v}))}} placeholder="Name" maxLength={30}/>
+              <input className="form-input" value={toolForm.devName} onChange={e=>{const v=clampVisual(e.target.value.replace(/[<>&"'`]/g,''),30);setToolForm(p=>({...p,devName:v}))}} placeholder="Name"/>
               <span className="char-hint" style={(30-getVisualWidth(toolForm.devName))<=3?{color:"var(--accent-red)"}:undefined}>{getVisualWidth(toolForm.devName)}/30<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>{t("toolForm.hintDevChars")}</span><HintTip text={t("toolForm.hoverTip")}/></span>
             </label>
             <label className="form-label">{t("toolForm.email")}
-              <input className="form-input" value={toolForm.devEmail} onChange={e=>{const v=e.target.value.replace(EMAIL_RE,'');if(v.length<=50)setToolForm(p=>({...p,devEmail:v}))}} onFocus={e=>{if(!toolForm.devEmail){setToolForm(p=>({...p,devEmail:"@tpv-tech.com"}));setTimeout(()=>{e.target.setSelectionRange(0,0)},0)}}} placeholder="developer_name@tpv-tech.com" maxLength={50}/>
+              <input className="form-input" value={toolForm.devEmail} onChange={e=>{const v=e.target.value.replace(EMAIL_RE,'').slice(0,50);setToolForm(p=>({...p,devEmail:v}))}} onFocus={e=>{if(!toolForm.devEmail){setToolForm(p=>({...p,devEmail:"@tpv-tech.com"}));setTimeout(()=>{e.target.setSelectionRange(0,0)},0)}}} placeholder="developer_name@tpv-tech.com" maxLength={50}/>
               <span className="char-hint" style={(50-(toolForm.devEmail||"").length)<=5?{color:"var(--accent-red)"}:undefined}>{(toolForm.devEmail||"").length}/50<span style={{fontSize:9,color:"var(--text-muted)",marginLeft:6}}>{t("toolForm.hintEmailChars")}</span><HintTip text={t("toolForm.emailTip")}/></span>
             </label>
             <label className="form-label">{t("toolForm.ext")}
