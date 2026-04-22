@@ -87,7 +87,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
             <tr key={l.id}>
               <td className="mono" style={{color:"var(--text-muted)",textAlign:"center"}}>{String(i+1).padStart(3,"0")}</td>
               <td><div style={{width:260,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.toolName}</div></td>
-              <td><div className="dl-tip" data-tip={l.modelName||"—"} style={{display:"block",width:220}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.modelName||"—"}</div></div></td>
+              <td><div className="dl-tip" data-tip={l.modelName||"—"} style={{display:"block",width:135}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.modelName||"—"}</div></div></td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
               <td style={{textAlign:"center"}}><span className="dl-tip" data-tip={l.testerEmail||"—"} style={{cursor:"default",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</span></td>

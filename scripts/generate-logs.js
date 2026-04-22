@@ -47,15 +47,16 @@ TOOLS.forEach((tool) => {
           if (+year === 2026 && +month === 3 && day > 17) day = 3 + (idx % 15);
           const startDate = new Date(+year, +month - 1, day, hour, min);
 
-          const result = tool.hasReport && pat ? pat[idx % pat.length] : null;
+          const hasTest = tool.hasReport && pat;
+          const result = hasTest ? pat[idx % pat.length] : "n/a";
           const durH = tool.hasReport ? (idx * 7 + 3) % 50 / 10 + 1 : 1;
           const endDate = new Date(startDate.getTime() + durH * 3600000);
 
           const filename = `${tool.id}_${site.toLowerCase()}_${String(idx + 1).padStart(3, "0")}.txt`;
 
-          const totalCount = 15 + (idx % 16);
-          const failCount = result && result === "fail" ? 1 + (idx % 5) : 0;
-          const passCount = totalCount - failCount;
+          const totalCount = hasTest ? 15 + (idx % 16) : 0;
+          const failCount = hasTest && result === "fail" ? 1 + (idx % 5) : 0;
+          const passCount = hasTest ? totalCount - failCount : 0;
 
           let content = "[LOG_START]\n";
           content += `Tool Full Name: ${tool.dev_site}_${tool.cat}_${tool.name}\n`;
@@ -63,10 +64,8 @@ TOOLS.forEach((tool) => {
           content += `Test Site: ${site}\n`;
           content += `Test Unit: ${testerObj.test_unit}\n`;
           content += `Tester: ${testerObj.name}\n`;
-          content += `Tester Email: ${TESTER_EMAILS[testerObj.name] || "—"}\n`;
-          if (result) {
-            content += `Result: ${result.toUpperCase()}\n`;
-          }
+          content += `Tester Email: ${TESTER_EMAILS[testerObj.name]}\n`;
+          content += `Result: ${result.toUpperCase()}\n`;
           content += `Fail Count: ${failCount}\n`;
           content += `Pass Count: ${passCount}\n`;
           content += `Total Count: ${totalCount}\n`;

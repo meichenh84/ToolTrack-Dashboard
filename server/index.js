@@ -31,6 +31,7 @@ const upload = multer({ dest: UPLOADS_TMP, limits: { fileSize: MAX_FILE_SIZE, fi
 
 // ── Constants & Input Limits ──
 const VALID_SITES = ["TPE", "XM", "FQ", "GZ", "Others"];
+const VALID_LOG_SITES = ["TPE", "XM", "FQ", "GZ"];
 function getVisualWidth(str) {
   let w = 0;
   for (const ch of str) {
@@ -42,7 +43,7 @@ function getVisualWidth(str) {
 
 const LIMITS = {
   TOOL_NAME_MAX: 50,
-  TOOL_NAME_VISUAL: 31,
+  TOOL_NAME_VISUAL: 36,
   VERSION: 30,
   DEV_UNIT: 50,
   DEV_NAME: 50,
@@ -192,39 +193,43 @@ function validateAndParseLog(text, filename) {
   };
 
   const toolName = get("Tool Full Name");
-  const modelName = get("Model Name") || "—";
+  const modelName = get("Model Name");
   const site = get("Test Site");
   const tester = get("Tester");
-  const testerEmail = get("Tester Email") || "—";
+  const testerEmail = get("Tester Email");
   const testUnit = get("Test Unit");
   const resultRaw = get("Result");
   const logStart = get("Test_Log Start");
   const logEnd = get("Test_Log End");
-  const failCount = parseInt(get("Fail Count")) || 0;
-  const failRounds = parseInt(get("Fail Rounds")) || 0;
-  const passCount = parseInt(get("Pass Count")) || 0;
-  const passRounds = parseInt(get("Pass Rounds")) || 0;
-  const totalCount = parseInt(get("Total Count")) || 0;
-  const totalRounds = parseInt(get("Total Rounds")) || 0;
+  const failCountStr = get("Fail Count");
+  const passCountStr = get("Pass Count");
+  const totalCountStr = get("Total Count");
 
-  // Required fields
+  // Required fields — all 12 fields must be present
   const missing = [];
   if (!toolName) missing.push("Tool Full Name");
+  if (!modelName) missing.push("Model Name");
   if (!site) missing.push("Test Site");
+  if (!testUnit) missing.push("Test Unit");
   if (!tester) missing.push("Tester");
+  if (!testerEmail) missing.push("Tester Email");
+  if (!resultRaw) missing.push("Result");
   if (!logStart) missing.push("Test_Log Start");
   if (!logEnd) missing.push("Test_Log End");
+  if (failCountStr === null) missing.push("Fail Count");
+  if (passCountStr === null) missing.push("Pass Count");
+  if (totalCountStr === null) missing.push("Total Count");
   if (missing.length > 0) {
     return { ok: false, error: `缺少必填欄位: ${missing.join("、")}` };
   }
 
   // ── Layer 2.5: Field length limits ──
-  if (toolName && toolName.length > LIMITS.TOOL_NAME_MAX) return { ok: false, error: `Tool Full Name 超過 ${LIMITS.TOOL_NAME_MAX} 字元上限` };
-  if (toolName && getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool Full Name 超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
-  if (tester && tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
-  if (testerEmail !== "—" && testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
-  if (testUnit && testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
-  if (modelName !== "—" && modelName.length > LIMITS.LOG_MODEL_NAME) return { ok: false, error: `Model Name 超過 ${LIMITS.LOG_MODEL_NAME} 字元上限` };
+  if (toolName.length > LIMITS.TOOL_NAME_MAX) return { ok: false, error: `Tool Full Name 超過 ${LIMITS.TOOL_NAME_MAX} 字元上限` };
+  if (getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool Full Name 超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
+  if (tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
+  if (testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
+  if (testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
+  if (modelName.length > LIMITS.LOG_MODEL_NAME) return { ok: false, error: `Model Name 超過 ${LIMITS.LOG_MODEL_NAME} 字元上限` };
   if (filename.length > LIMITS.FILENAME) return { ok: false, error: `檔名超過 ${LIMITS.FILENAME} 字元上限` };
 
   // ── Layer 3: Data ──
@@ -235,19 +240,29 @@ function validateAndParseLog(text, filename) {
     return { ok: false, error: `工具「${toolName}」不存在，請先至 Tool Status 新增該工具` };
   }
 
-  // Test Site must be valid
-  if (!VALID_SITES.includes(site)) {
-    return { ok: false, error: `Test Site「${site}」不合法，須為 ${VALID_SITES.join(" / ")}` };
+  // Test Site must be valid (Log uploads do not accept "Others")
+  if (!VALID_LOG_SITES.includes(site)) {
+    return { ok: false, error: `Test Site「${site}」不合法，須為 ${VALID_LOG_SITES.join(" / ")}` };
   }
 
-  // Result: if present, must be valid; if absent, OK (non-testing tools)
-  let result = null;
-  if (resultRaw) {
-    result = VALID_RESULTS[resultRaw.toUpperCase()];
-    if (!result) {
-      return { ok: false, error: `Result「${resultRaw}」不合法，須為 PASS / FAIL / WARNING / N/A` };
-    }
+  // Result must be valid
+  const result = VALID_RESULTS[resultRaw.toUpperCase()];
+  if (!result) {
+    return { ok: false, error: `Result「${resultRaw}」不合法，須為 PASS / FAIL / WARNING (or WARN) / STOPPED / N/A` };
   }
+
+  // Numeric fields must be non-negative integers
+  const numFields = [
+    [failCountStr, "Fail Count"],
+    [passCountStr, "Pass Count"],
+    [totalCountStr, "Total Count"],
+  ];
+  for (const [s, name] of numFields) {
+    if (!/^\d+$/.test(s.trim())) return { ok: false, error: `${name}「${s}」必須為非負整數` };
+  }
+  const failCount = parseInt(failCountStr, 10);
+  const passCount = parseInt(passCountStr, 10);
+  const totalCount = parseInt(totalCountStr, 10);
 
   // Date format + validate no silent correction (e.g. 02/29 on non-leap year → 03/01)
   const parseDate = (str) => {
@@ -282,7 +297,7 @@ function validateAndParseLog(text, filename) {
       cat: toolRow.cat,
       filename,
       test_site: site,
-      test_unit: testUnit || "—",
+      test_unit: testUnit,
       tester,
       tester_email: testerEmail,
       result,
@@ -290,11 +305,8 @@ function validateAndParseLog(text, filename) {
       time_str: fmtDate(startDate),
       dur: `${durH}h`,
       fail_count: failCount,
-      fail_rounds: failRounds,
       pass_count: passCount,
-      pass_rounds: passRounds,
       total_count: totalCount,
-      total_rounds: totalRounds,
     },
   };
 }
@@ -331,8 +343,8 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, fail_rounds, pass_count, pass_rounds, total_count, total_rounds)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, pass_count, total_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
@@ -343,7 +355,7 @@ function importLogs() {
       if (v.ok) {
         const p = v.data;
         const fileSize = fs.statSync(filePath).size;
-        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time, p.fail_count, p.fail_rounds, p.pass_count, p.pass_rounds, p.total_count, p.total_rounds);
+        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time, p.fail_count, p.pass_count, p.total_count);
         if (info.changes > 0) imported++;
       }
     });
@@ -425,9 +437,9 @@ app.get("/api/logs", (req, res) => {
     result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
     size: l.size || 0,
     uploadedAt: l.uploaded_at, uploadedAtStr: fmtTime(l.uploaded_at),
-    failCount: l.fail_count || 0, failRounds: l.fail_rounds || 0,
-    passCount: l.pass_count || 0, passRounds: l.pass_rounds || 0,
-    totalCount: l.total_count || 0, totalRounds: l.total_rounds || 0,
+    failCount: l.fail_count || 0,
+    passCount: l.pass_count || 0,
+    totalCount: l.total_count || 0,
   })));
 });
 
@@ -437,8 +449,8 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, fail_rounds, pass_count, pass_rounds, total_count, total_rounds)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, pass_count, total_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
     // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
@@ -458,7 +470,7 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
           fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
-          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now(), p.fail_count, p.fail_rounds, p.pass_count, p.pass_rounds, p.total_count, p.total_rounds);
+          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now(), p.fail_count, p.pass_count, p.total_count);
           results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }
