@@ -90,7 +90,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td><div className="dl-tip" data-tip={l.modelName||"—"} style={{display:"block",width:135}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.modelName||"—"}</div></div></td>
               <td style={{textAlign:"center"}}>{l.test_site}</td>
               <td style={{textAlign:"center"}}>{l.test_unit||"—"}</td>
-              <td style={{textAlign:"center"}}><span className="dl-tip" data-tip={l.testerEmail||"—"} style={{cursor:"default",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</span></td>
+              <td style={{textAlign:"center"}}><div className="dl-tip" data-tip={`${l.tester}\n${l.testerEmail||"—"}`} style={{display:"inline-block",width:135,cursor:"default",verticalAlign:"middle"}}><div style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",borderBottom:"1px dashed var(--text-muted)"}}>{l.tester}</div></div></td>
               <td className="mono" style={{textAlign:"center"}}>{l.dur}</td>
               <td style={{textAlign:"center"}}><ResultBadge result={l.result}/></td>
               <td className="mono" style={{textAlign:"center"}}>{l.failCount}</td>
