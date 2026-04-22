@@ -32,6 +32,7 @@ const upload = multer({ dest: UPLOADS_TMP, limits: { fileSize: MAX_FILE_SIZE, fi
 // ── Constants & Input Limits ──
 const VALID_SITES = ["TPE", "XM", "FQ", "GZ", "Others"];
 const VALID_LOG_SITES = ["TPE", "XM", "FQ", "GZ"];
+const VALID_LOG_TEST_UNITS = ["TV", "Monitor", "PD", "Others"];
 function getVisualWidth(str) {
   let w = 0;
   for (const ch of str) {
@@ -52,7 +53,6 @@ const LIMITS = {
   FILENAME: 255,
   LOG_TESTER: 50,
   LOG_TESTER_EMAIL: 100,
-  LOG_TEST_UNIT: 50,
   LOG_MODEL_NAME: 100,
 };
 const VALID_CATS = ["HW", "SW", "ME", "RTE", "Others"];
@@ -228,7 +228,6 @@ function validateAndParseLog(text, filename) {
   if (getVisualWidth(toolName) > LIMITS.TOOL_NAME_VISUAL) return { ok: false, error: `Tool Full Name 超過顯示寬度上限 (${LIMITS.TOOL_NAME_VISUAL} 單位；中文=2, 英文=1)` };
   if (tester.length > LIMITS.LOG_TESTER) return { ok: false, error: `Tester 名稱超過 ${LIMITS.LOG_TESTER} 字元上限` };
   if (testerEmail.length > LIMITS.LOG_TESTER_EMAIL) return { ok: false, error: `Tester Email 超過 ${LIMITS.LOG_TESTER_EMAIL} 字元上限` };
-  if (testUnit.length > LIMITS.LOG_TEST_UNIT) return { ok: false, error: `Test Unit 超過 ${LIMITS.LOG_TEST_UNIT} 字元上限` };
   if (modelName.length > LIMITS.LOG_MODEL_NAME) return { ok: false, error: `Model Name 超過 ${LIMITS.LOG_MODEL_NAME} 字元上限` };
   if (filename.length > LIMITS.FILENAME) return { ok: false, error: `檔名超過 ${LIMITS.FILENAME} 字元上限` };
 
@@ -243,6 +242,11 @@ function validateAndParseLog(text, filename) {
   // Test Site must be valid (Log uploads do not accept "Others")
   if (!VALID_LOG_SITES.includes(site)) {
     return { ok: false, error: `Test Site「${site}」不合法，須為 ${VALID_LOG_SITES.join(" / ")}` };
+  }
+
+  // Test Unit must be a valid enum
+  if (!VALID_LOG_TEST_UNITS.includes(testUnit)) {
+    return { ok: false, error: `Test Unit「${testUnit}」不合法，須為 ${VALID_LOG_TEST_UNITS.join(" / ")}` };
   }
 
   // Result must be valid
