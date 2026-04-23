@@ -507,6 +507,18 @@ app.delete("/api/logs/:id", (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// Serve built frontend (production)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(DIST_DIR)) {
+  app.use('/ToolTrack-Dashboard', express.static(DIST_DIR));
+  app.use('/ToolTrack-Dashboard', (_req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // Start
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -529,10 +541,10 @@ async function start() {
   const imported = importLogs();
   const total = db.prepare("SELECT COUNT(*) as count FROM logs WHERE deleted = 0").get().count;
 
-  app.listen(3001, "0.0.0.0", () => {
+  app.listen(5173, "0.0.0.0", () => {
     console.log("──────────────────────────────────────");
-    console.log("  ToolTrack API Server");
-    console.log("  http://0.0.0.0:3001");
+    console.log("  ToolTrack Server");
+    console.log("  http://0.0.0.0:5173/ToolTrack-Dashboard/");
     console.log(`  Tools: ${db.prepare("SELECT COUNT(*) as c FROM tools").get().c}`);
     console.log(`  Logs:  ${total} (${imported} newly imported)`);
     console.log("──────────────────────────────────────");
