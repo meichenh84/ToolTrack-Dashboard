@@ -81,6 +81,7 @@
     "selectFiles": "選擇檔案",
     "searchPlaceholder": "搜尋工具、檔名、測試者、站點...",
     "colUploadTime": "上傳時間",
+    "execDuration": "執行時長",
     "colToolName": "完整名稱",
     "colModelName": "機型名稱",
     "colDownload": "下載",

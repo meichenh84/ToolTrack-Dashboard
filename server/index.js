@@ -118,6 +118,7 @@ db.exec(`
     time INTEGER,
     time_str TEXT,
     dur TEXT,
+    dur_sec INTEGER DEFAULT 0,
     size INTEGER DEFAULT 0,
     uploaded_at INTEGER,
     deleted INTEGER DEFAULT 0
@@ -137,6 +138,7 @@ try { db.exec("ALTER TABLE logs ADD COLUMN pass_count INTEGER DEFAULT 0"); } cat
 try { db.exec("ALTER TABLE logs ADD COLUMN pass_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE logs ADD COLUMN total_count INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE logs ADD COLUMN total_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE logs ADD COLUMN dur_sec INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 
 // Backfill sort_order from rowid for existing tools
 (() => {
@@ -161,6 +163,43 @@ try { db.exec("ALTER TABLE logs ADD COLUMN total_rounds INTEGER DEFAULT 0"); } c
       });
     })();
   }
+})();
+
+// Backfill dur_sec for existing logs by re-reading source .txt; fall back to rounded dur string
+(()=>{
+  const rows = db.prepare("SELECT id, filename, dur FROM logs WHERE dur_sec IS NULL OR dur_sec = 0").all();
+  if (rows.length === 0) return;
+  const update = db.prepare("UPDATE logs SET dur_sec = ? WHERE id = ?");
+  const dateRe = /^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/;
+  const parseLogDate = (s) => {
+    const m = s && s.match(dateRe);
+    if (!m) return null;
+    const [, y, mo, d, h, mi, se] = m;
+    const dt = new Date(+y, +mo - 1, +d, +h, +mi, se ? +se : 0);
+    return isNaN(dt.getTime()) ? null : dt;
+  };
+  db.transaction(() => {
+    rows.forEach(r => {
+      let durSec = 0;
+      try {
+        const fp = path.join(LOGS_DIR, r.filename);
+        const text = fs.readFileSync(fp, "utf-8");
+        const header = text.includes("[LOG_START]") && text.includes("[LOG_END]")
+          ? text.substring(text.indexOf("[LOG_START]"), text.indexOf("[LOG_END]"))
+          : text;
+        const sm = header.match(/^Test_Log Start:\s*(.+)$/m);
+        const em = header.match(/^Test_Log End:\s*(.+)$/m);
+        const sd = sm && parseLogDate(sm[1].trim());
+        const ed = em && parseLogDate(em[1].trim());
+        if (sd && ed && ed > sd) durSec = Math.floor((ed - sd) / 1000);
+      } catch(e) { /* file missing — fall back below */ }
+      if (durSec === 0 && r.dur) {
+        const h = parseFloat(r.dur);
+        if (!isNaN(h) && h > 0) durSec = Math.round(h * 3600);
+      }
+      if (durSec > 0) update.run(durSec, r.id);
+    });
+  })();
 })();
 
 
@@ -290,7 +329,9 @@ function validateAndParseLog(text, filename) {
     return { ok: false, error: `結束時間（${logEnd}）早於或等於開始時間（${logStart}）` };
   }
 
-  const durH = ((endDate - startDate) / 3600000).toFixed(1);
+  const durMs = endDate - startDate;
+  const durH = (durMs / 3600000).toFixed(1);
+  const durSec = Math.floor(durMs / 1000);
 
   return {
     ok: true,
@@ -308,6 +349,7 @@ function validateAndParseLog(text, filename) {
       time: startDate.getTime(),
       time_str: fmtDate(startDate),
       dur: `${durH}h`,
+      dur_sec: durSec,
       fail_count: failCount,
       pass_count: passCount,
       total_count: totalCount,
@@ -347,8 +389,8 @@ function importLogs() {
   }
   const files = fs.readdirSync(LOGS_DIR).filter((f) => f.endsWith(".log") || f.endsWith(".txt"));
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, pass_count, total_count)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, dur_sec, size, uploaded_at, fail_count, pass_count, total_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   let imported = 0;
   db.transaction(() => {
@@ -359,7 +401,7 @@ function importLogs() {
       if (v.ok) {
         const p = v.data;
         const fileSize = fs.statSync(filePath).size;
-        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, fileSize, p.time, p.fail_count, p.pass_count, p.total_count);
+        const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, p.dur_sec, fileSize, p.time, p.fail_count, p.pass_count, p.total_count);
         if (info.changes > 0) imported++;
       }
     });
@@ -438,7 +480,7 @@ app.get("/api/logs", (req, res) => {
     id: l.id, toolId: l.tool_id, toolName: l.tool_name, modelName: l.model_name || "—", cat: l.cat,
     filename: l.filename, test_site: l.test_site, test_unit: l.test_unit,
     tester: l.tester, testerEmail: l.tester_email,
-    result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur,
+    result: l.result, time: l.time, timeStr: l.time_str, dur: l.dur, durSec: l.dur_sec || 0,
     size: l.size || 0,
     uploadedAt: l.uploaded_at, uploadedAtStr: fmtTime(l.uploaded_at),
     failCount: l.fail_count || 0,
@@ -453,8 +495,8 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
   }
   const results = [];
   const insert = db.prepare(
-    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, size, uploaded_at, fail_count, pass_count, total_count)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO logs (tool_id, tool_name, model_name, cat, filename, test_site, test_unit, tester, tester_email, result, time, time_str, dur, dur_sec, size, uploaded_at, fail_count, pass_count, total_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   req.files.forEach((file) => {
     // Decode UTF-8 filename (multer/busboy defaults to Latin-1)
@@ -474,7 +516,7 @@ app.post("/api/logs/upload", uploadLimiter, upload.array("files"), (req, res) =>
           // If previously soft-deleted, hard-delete first
           db.prepare("DELETE FROM logs WHERE filename = ?").run(p.filename);
           fs.copyFileSync(file.path, path.join(LOGS_DIR, originalName));
-          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, file.size, Date.now(), p.fail_count, p.pass_count, p.total_count);
+          const info = insert.run(p.tool_id, p.tool_name, p.model_name, p.cat, p.filename, p.test_site, p.test_unit, p.tester, p.tester_email, p.result, p.time, p.time_str, p.dur, p.dur_sec, file.size, Date.now(), p.fail_count, p.pass_count, p.total_count);
           results.push({ filename: originalName, success: true, id: info.lastInsertRowid });
         }
       }
@@ -509,6 +551,12 @@ app.delete("/api/logs/:id", (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // Serve built frontend (production)
 // ══════════════════════════════════════════════════════════════════════════════
+
+// Error logger so 500s show up in console with stack
+app.use((err, req, res, _next) => {
+  console.error(`[ERR ${req.method} ${req.url}]`, err?.stack || err?.message || err);
+  if (!res.headersSent) res.status(500).json({ error: err?.message || "Internal Server Error" });
+});
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(DIST_DIR)) {
