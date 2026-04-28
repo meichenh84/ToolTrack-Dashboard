@@ -2,6 +2,13 @@ import { useState, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ResultBadge from "./ResultBadge.jsx";
 
+const fmtHMS=(sec)=>{
+  const n=Number(sec);
+  if(!Number.isFinite(n)||n<=0)return"—";
+  const h=Math.floor(n/3600),m=Math.floor((n%3600)/60),s=Math.floor(n%60);
+  return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+};
+
 export default function UploadLogTab({logs,onUpload,onDelete}){
   const{t}=useTranslation();
   const[search,setSearch]=useState("");
@@ -97,7 +104,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
               <td className="mono" style={{textAlign:"center"}}>{l.passCount}</td>
               <td className="mono" style={{textAlign:"center"}}>{l.totalCount}</td>
               <td className="mono" style={{textAlign:"center",color:l.totalCount>0&&l.failCount/l.totalCount>0?"var(--accent-red)":"var(--text-muted)"}}>{l.totalCount>0?(l.failCount/l.totalCount*100).toFixed(1)+"%":"0.0%"}</td>
-              <td style={{textAlign:"center"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} className="dl-tip" data-tip={`${l.filename}\n${t("upload.colUploadTime")}: ${l.uploadedAtStr}`} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer",fontSize:16}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>
+              <td style={{textAlign:"center"}}><a href={`/api/logs/download/${encodeURIComponent(l.filename)}`} download={l.filename} onClick={e=>e.stopPropagation()} className="dl-tip" data-tip={`${l.filename}\n${t("upload.colUploadTime")}: ${l.uploadedAtStr}\n${t("upload.execDuration")}: ${fmtHMS(l.durSec)}`} style={{color:"var(--accent-cyan)",textDecoration:"none",cursor:"pointer",fontSize:16}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>
               <td style={{textAlign:"center"}}><button className="delete-btn" onClick={()=>onDelete(l.id,l.filename)}>{t("upload.delete")}</button></td>
             </tr>
           ))}

@@ -81,6 +81,7 @@
     "selectFiles": "SELECT FILES",
     "searchPlaceholder": "Search tool, filename, tester, site...",
     "colUploadTime": "Upload Time",
+    "execDuration": "Execution Duration",
     "colToolName": "Full Name",
     "colModelName": "Model Name",
     "colDownload": "Download",
