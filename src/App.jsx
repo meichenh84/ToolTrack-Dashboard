@@ -53,9 +53,9 @@ export default function Dashboard(){
   // ── Tool CRUD ──
   const toggleTool=async(id)=>{
     const tool=tools.find(t=>t.id===id);
-    if(tool&&!tool.enabled&&tool.service_end_date){
-      const today=new Date();const todayStr=`${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,"0")}/${String(today.getDate()).padStart(2,"0")}`;
-      if(tool.service_end_date!==todayStr){setNotif(t("notify.toolRetired",{name:tool.name,date:tool.service_end_date}));return;}
+    if(tool&&!tool.enabled&&tool.retired_at){
+      const elapsed=Date.now()-tool.retired_at;
+      if(elapsed>24*60*60*1000){setNotif(t("notify.toolRetired",{name:tool.name,date:tool.service_end_date}));return;}
     }
     await fetch(`/api/tools/${id}/toggle`,{method:"PUT"});refreshTools();
   };

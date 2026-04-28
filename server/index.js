@@ -139,6 +139,7 @@ try { db.exec("ALTER TABLE logs ADD COLUMN pass_rounds INTEGER DEFAULT 0"); } ca
 try { db.exec("ALTER TABLE logs ADD COLUMN total_count INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE logs ADD COLUMN total_rounds INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
 try { db.exec("ALTER TABLE logs ADD COLUMN dur_sec INTEGER DEFAULT 0"); } catch(e) { /* column already exists */ }
+try { db.exec("ALTER TABLE tools ADD COLUMN retired_at INTEGER DEFAULT NULL"); } catch(e) { /* column already exists */ }
 
 // Backfill sort_order from rowid for existing tools
 (() => {
@@ -421,7 +422,7 @@ app.get("/api/tools", (req, res) => {
     dev_site: t.dev_site, dev_unit: t.dev_unit,
     dev: { name: t.dev_name, email: t.dev_email, ext: t.dev_ext },
     finish_date: t.finish_date || "", service_end_date: t.service_end_date || "", hasReport: !!t.has_report, uses: t.uses, enabled: !!t.enabled,
-    sort_order: t.sort_order,
+    sort_order: t.sort_order, retired_at: t.retired_at || null,
   })));
 });
 
@@ -462,9 +463,9 @@ app.put("/api/tools/:id/toggle", (req, res) => {
   const nowEnabled = !before.enabled;
   const fmtNow = () => { const d = new Date(); return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`; };
   if (nowEnabled) {
-    db.prepare("UPDATE tools SET enabled = 1, service_end_date = NULL WHERE id = ?").run(req.params.id);
+    db.prepare("UPDATE tools SET enabled = 1, service_end_date = NULL, retired_at = NULL WHERE id = ?").run(req.params.id);
   } else {
-    db.prepare("UPDATE tools SET enabled = 0, service_end_date = ? WHERE id = ?").run(fmtNow(), req.params.id);
+    db.prepare("UPDATE tools SET enabled = 0, service_end_date = ?, retired_at = ? WHERE id = ?").run(fmtNow(), Date.now(), req.params.id);
   }
   res.json({ success: true, enabled: !!nowEnabled });
 });
