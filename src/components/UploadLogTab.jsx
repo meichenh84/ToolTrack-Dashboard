@@ -31,7 +31,7 @@ export default function UploadLogTab({logs,onUpload,onDelete}){
       if(sortCfg.key==="failRate"){av=a.totalCount>0?a.failCount/a.totalCount:0;bv=b.totalCount>0?b.failCount/b.totalCount:0}
       else{av=a[sortCfg.key];bv=b[sortCfg.key]}
       if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
-      if(sortCfg.key==="dur"){av=parseFloat(av)||0;bv=parseFloat(bv)||0}
+      if(sortCfg.key==="dur"){av=a.durSec||0;bv=b.durSec||0}
       else if(typeof av==="string"){av=av.toLowerCase();bv=(bv||"").toLowerCase()}
       if(av<bv)return sortCfg.dir==="asc"?-1:1;
       if(av>bv)return sortCfg.dir==="asc"?1:-1;return 0;

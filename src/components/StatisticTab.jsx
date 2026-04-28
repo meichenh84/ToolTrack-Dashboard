@@ -18,7 +18,7 @@ export default function StatisticTab({activeTools,allTools,allLogs}){
             const siteLogs=allLogs.filter(l=>l.test_site===s&&toolIds.has(l.toolId));
             const toolMap={};
             activeTools.forEach(t=>{toolMap[t.id]={name:`${t.dev_site}_${t.cat}_${t.name}`,count:0,dur:0}});
-            siteLogs.forEach(l=>{if(toolMap[l.toolId]){toolMap[l.toolId].count++;const h=parseFloat(l.dur);if(!isNaN(h))toolMap[l.toolId].dur+=h}});
+            siteLogs.forEach(l=>{if(toolMap[l.toolId]){toolMap[l.toolId].count++;toolMap[l.toolId].dur+=(l.durSec||0)/3600}});
             const data=Object.values(toolMap).map(v=>({name:v.name,count:v.count,dur:v.dur})).sort((a,b)=>b.count-a.count);
             const max=data.length>0?data[0].count:0;
             const top3=data.slice(0,3);
@@ -67,7 +67,7 @@ export default function StatisticTab({activeTools,allTools,allLogs}){
         allLogs.filter(l=>toolIds.has(l.toolId)).forEach(l=>{
           if(!testerMap[l.tester])testerMap[l.tester]={count:0,dur:0,test_site:l.test_site,test_unit:l.test_unit};
           testerMap[l.tester].count++;
-          const h=parseFloat(l.dur);if(!isNaN(h))testerMap[l.tester].dur+=h;
+          testerMap[l.tester].dur+=(l.durSec||0)/3600;
         });
         const testerData=Object.entries(testerMap).map(([name,v])=>({name,count:v.count,dur:v.dur,test_site:v.test_site,unit:v.test_unit||"—"})).sort((a,b)=>b.count-a.count);
         const max=testerData.length>0?testerData[0].count:0;

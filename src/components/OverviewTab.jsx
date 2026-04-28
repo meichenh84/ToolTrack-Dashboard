@@ -67,7 +67,7 @@ export default function OverviewTab({activeTools,allLogs}){
     return filteredMatrixLogs.filter(l=>{
       const d=new Date(l.time);
       return l.toolId===toolId&&d.getFullYear()===year&&d.getMonth()===month-1;
-    }).reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+    }).reduce((s,l)=>s+(l.durSec||0)/3600,0);
   };
 
   return(
@@ -75,7 +75,7 @@ export default function OverviewTab({activeTools,allLogs}){
       <div className="stats-row">
         {[
           {label:t("overview.totalTools"),val:<><CountUp target={activeTools.length}/></>,sub:"",accent:"var(--accent-cyan)"},
-          {label:t("overview.totalDuration"),val:<><CountUp target={Math.round(allLogs.reduce((sum,l)=>{const n=parseFloat(l.dur);return sum+(isNaN(n)?0:n)},0))}/><span style={{fontSize:14,fontWeight:400}}>h</span></>,sub:t("overview.allSavedHours"),accent:"var(--accent-teal)"},
+          {label:t("overview.totalDuration"),val:<><CountUp target={Math.round(allLogs.reduce((sum,l)=>sum+(l.durSec||0)/3600,0))}/><span style={{fontSize:14,fontWeight:400}}>h</span></>,sub:t("overview.allSavedHours"),accent:"var(--accent-teal)"},
         ].map((s,i)=>(
           <div key={i} className="stat-card" style={{"--accent-color":s.accent}}>
             <div className="stat-label">{s.label}</div>
@@ -143,7 +143,7 @@ export default function OverviewTab({activeTools,allLogs}){
                   if(key==="totalCount"){av=aLogs.length;bv=bLogs.length}
                   else if(key==="totalFail"){av=aLogs.reduce((s,l)=>s+(l.failCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.failCount||0),0)}
                   else if(key==="totalCases"){av=aLogs.reduce((s,l)=>s+(l.totalCount||0),0);bv=bLogs.reduce((s,l)=>s+(l.totalCount||0),0)}
-                  else{av=aLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);bv=bLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0)}
+                  else{av=aLogs.reduce((s,l)=>s+(l.durSec||0)/3600,0);bv=bLogs.reduce((s,l)=>s+(l.durSec||0)/3600,0)}
                 }
                 if(av<bv)return matrixSort.dir==="asc"?-1:1;
                 if(av>bv)return matrixSort.dir==="asc"?1:-1;return 0;
@@ -154,7 +154,7 @@ export default function OverviewTab({activeTools,allLogs}){
                   <tr key={tool.id} className={usedCount===0?"matrix-row-unused":""}>
                     <td style={{color:"var(--text-muted)",fontSize:11,textAlign:"center",fontFamily:"monospace"}}>{idx+1}</td>
                     <td className="matrix-tool-name">{`${tool.dev_site}_${tool.cat}_${tool.name}`}</td>
-                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tFail=tLogs.reduce((s,l)=>s+(l.failCount||0),0);const tCases=tLogs.reduce((s,l)=>s+(l.totalCount||0),0);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);return(<>
+                    {(()=>{const tLogs=filteredMatrixLogs.filter(l=>l.toolId===tool.id);const tFail=tLogs.reduce((s,l)=>s+(l.failCount||0),0);const tCases=tLogs.reduce((s,l)=>s+(l.totalCount||0),0);const tCount=tLogs.length;const tDur=tLogs.reduce((s,l)=>s+(l.durSec||0)/3600,0);return(<>
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tFail}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tCases}</div></td>
                     <td className="matrix-cell" style={{borderRight:"1px solid var(--border)"}}><div style={{fontWeight:700,color:"var(--text-primary)",fontSize:12}}>{tCount}{t("overview.times")}</div><div style={{fontSize:11,fontWeight:700,color:"var(--accent-teal)",marginTop:2}}>{tDur.toFixed(1)}h</div></td>
                     </>)})()}
@@ -170,7 +170,7 @@ export default function OverviewTab({activeTools,allLogs}){
                 const toolIdSet=new Set(activeTools.map(t=>t.id));
                 const relevantLogs=filteredMatrixLogs.filter(l=>toolIdSet.has(l.toolId));
                 const grandCount=relevantLogs.length;
-                const grandDur=relevantLogs.reduce((s,l)=>{const n=parseFloat(l.dur);return s+(isNaN(n)?0:n)},0);
+                const grandDur=relevantLogs.reduce((s,l)=>s+(l.durSec||0)/3600,0);
                 const grandFail=relevantLogs.reduce((s,l)=>s+(l.failCount||0),0);
                 const grandCases=relevantLogs.reduce((s,l)=>s+(l.totalCount||0),0);
                 return(
